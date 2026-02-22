@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>GitHub Atlas — Navigate What You Build</title>
+<meta name="description" content="Three tools. Navigate GitHub's ecosystem. Analyze risk. Discover libraries. Showcase your org."/>
+<meta property="og:title" content="GitHub Atlas — Navigate What You Build"/>
+<meta property="og:description" content="Interactive maps for GitHub's ecosystem. Analyze risk. Discover libraries. Showcase your org."/>
+<meta property="og:image" content="https://github.com/blackmath88/github-atlas/raw/main/preview.png"/>
+<meta property="og:url" content="https://blackmath88.github.io/github-atlas/"/>
+<meta property="og:type" content="website"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 10 L90 30 L90 70 L50 90 L10 70 L10 30 Z' fill='%236e4f84' stroke='%234d807f' stroke-width='2'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+
+:root{
+  --purple:    #6e4f84;
+  --purple-mid:#8b6aa0;
+  --lavender:  #cab1df;
+  --lav-dim:   #9d84b8;
+  --teal:      #4d807f;
+  --teal-hi:   #6aa8a7;
+  --near-white:#f7f1fb;
+  --mint:      #f5fffa;
+  --charcoal:  #444444;
+
+  --pg: rgba(110,79,132,.18);
+  --ps: rgba(110,79,132,.09);
+  --tg: rgba(77,128,127,.16);
+  --ts: rgba(77,128,127,.09);
+  --lg: rgba(202,177,223,.14);
+  --ls: rgba(202,177,223,.07);
+
+  --bg:     #080610;
+  --border: rgba(110,79,132,.2);
+  --bd:     rgba(110,79,132,.1);
+
+  --txt:    #c4b4d8;
+  --txt-d:  #9a88b8;
+  --txt-f:  #584870;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+
+body{
+  background:
+    radial-gradient(ellipse 1400px 800px at 10% 5%,  #140a24, transparent 50%),
+    radial-gradient(ellipse 1000px 600px at 90% 95%, #0c0a1c, transparent 50%),
+    radial-gradient(ellipse 700px  500px at 60% 45%, #0a0815, transparent 55%),
+    var(--bg);
+  color:var(--txt);
+  /* GitHub's exact font stack for body */
+  font-family:'Plus Jakarta Sans',sans-serif;
+  line-height:1.6;
+  overflow-x:hidden;
+}
+
+/* Grid */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:radial-gradient(circle,#2a1840 1px,transparent 1px);
+  background-size:32px 32px;opacity:.22;pointer-events:none;z-index:0;
+}
+
+/* Scan */
+body::after{
+  content:'';position:fixed;left:0;right:0;height:200px;
+  background:linear-gradient(180deg,transparent,rgba(110,79,132,.06),transparent);
+  animation:scan 18s linear infinite;pointer-events:none;z-index:0;
+}
+
+@keyframes scan{
+  0%{transform:translateY(-100%);opacity:0}8%{opacity:1}92%{opacity:1}100%{transform:translateY(100vh);opacity:0}
+}
+@keyframes shimmer{
+  0%{background-position:-300% center}100%{background-position:300% center}
+}
+@keyframes float{
+  0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-14px) rotate(1deg)}
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}
+}
+@keyframes glow-pulse{
+  0%,100%{opacity:.4}50%{opacity:1}
+}
+@keyframes spin-slow{
+  from{transform:rotate(0deg)}to{transform:rotate(360deg)}
+}
+
+/* Plus Jakarta Sans for all headings */
+h1,h2,h3,.head-title{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  letter-spacing:-.03em;
+}
+
+.wrapper{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 28px}
+
+/* ─── NAV ─── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(8,6,16,.85);
+  border-bottom:1px solid var(--bd);
+  backdrop-filter:blur(16px);
+}
+.nav-inner{
+  max-width:1200px;margin:0 auto;padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:54px;
+}
+.nav-brand{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:700;
+  color:var(--lavender);display:flex;align-items:center;gap:10px;
+  text-decoration:none;letter-spacing:-.02em;
+}
+.brand-hex{
+  width:26px;height:26px;
+  background:linear-gradient(135deg,var(--purple),var(--teal));
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:white;flex-shrink:0;
+}
+.nav-links{display:flex;align-items:center;gap:3px}
+.nav-link{
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.5px;
+  text-transform:uppercase;padding:5px 11px;border-radius:3px;
+  color:var(--txt-d);text-decoration:none;border:1px solid transparent;
+  transition:all .18s;
+}
+.nav-link:hover{color:var(--lavender);border-color:var(--bd);background:var(--ps)}
+.nav-link.gh{border-color:var(--bd);color:var(--lav-dim)}
+.nav-link.gh:hover{border-color:var(--border)}
+
+/* ─── HERO ─── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;
+  padding:120px 0 80px;
+  position:relative;
+}
+
+/* Massive radial glow behind hero */
+.hero-glow{
+  position:absolute;
+  width:900px;height:900px;
+  top:50%;left:50%;transform:translate(-50%,-55%);
+  background:
+    radial-gradient(circle at 40% 50%,rgba(110,79,132,.22) 0%,transparent 50%),
+    radial-gradient(circle at 65% 50%,rgba(77,128,127,.16) 0%,transparent 50%);
+  pointer-events:none;
+  animation:glow-pulse 6s ease-in-out infinite;
+}
+
+/* Orbiting ring */
+.hero-orbit{
+  position:absolute;
+  width:600px;height:600px;
+  top:50%;left:50%;transform:translate(-50%,-54%);
+  border:1px solid rgba(110,79,132,.12);
+  border-radius:50%;
+  animation:spin-slow 40s linear infinite;
+  pointer-events:none;
+}
+.hero-orbit::before{
+  content:'';position:absolute;
+  width:8px;height:8px;border-radius:50%;
+  background:var(--purple);top:-4px;left:50%;transform:translateX(-50%);
+  box-shadow:0 0 12px var(--purple);
+}
+.hero-orbit-2{
+  position:absolute;
+  width:440px;height:440px;
+  top:50%;left:50%;transform:translate(-50%,-54%);
+  border:1px solid rgba(77,128,127,.1);
+  border-radius:50%;
+  animation:spin-slow 28s linear infinite reverse;
+  pointer-events:none;
+}
+.hero-orbit-2::before{
+  content:'';position:absolute;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--teal);bottom:-3px;left:50%;transform:translateX(-50%);
+  box-shadow:0 0 10px var(--teal);
+}
+
+.hero-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--txt-f);margin-bottom:32px;
+  display:flex;align-items:center;gap:12px;justify-content:center;
+  animation:fadeUp .6s ease both;position:relative;
+}
+.hero-eyebrow span.sep{
+  width:4px;height:4px;border-radius:50%;
+  background:var(--txt-f);opacity:.6;flex-shrink:0;
+}
+
+h1.hero-title{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(3.6em,9vw,7.5em);
+  font-weight:900;line-height:.95;letter-spacing:-.025em;
+  margin-bottom:28px;
+  background:linear-gradient(140deg,
+    var(--near-white) 0%,
+    var(--lavender) 35%,
+    var(--teal-hi) 65%,
+    var(--near-white) 100%);
+  background-size:300% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:fadeUp .6s .08s ease both, shimmer 9s linear infinite;
+  position:relative;
+}
+
+.hero-sub{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(1.1em,2.5vw,1.5em);font-weight:600;
+  color:var(--lav-dim);margin-bottom:18px;letter-spacing:-.01em;
+  animation:fadeUp .6s .16s ease both;position:relative;
+}
+
+.hero-desc{
+  font-size:1em;color:var(--txt-d);
+  max-width:540px;margin:0 auto 52px;line-height:1.78;
+  animation:fadeUp .6s .24s ease both;position:relative;
+}
+
+/* Mini tool pills in hero */
+.hero-tools{
+  display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+  animation:fadeUp .6s .32s ease both;position:relative;
+}
+
+.tool-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 22px;border-radius:8px;
+  text-decoration:none;font-weight:600;font-size:.95em;
+  border:1px solid;letter-spacing:-.01em;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  font-family:'Plus Jakarta Sans',sans-serif;
+}
+.tool-pill.nav{
+  background:rgba(77,128,127,.12);border-color:rgba(77,128,127,.5);
+  color:var(--teal-hi);
+}
+.tool-pill.nav:hover{
+  background:rgba(77,128,127,.25);border-color:var(--teal);
+  box-shadow:0 8px 32px rgba(77,128,127,.3);transform:translateY(-4px);
+}
+.tool-pill.launch{
+  background:rgba(110,79,132,.15);border-color:rgba(110,79,132,.55);
+  color:var(--lavender);
+}
+.tool-pill.launch:hover{
+  background:rgba(110,79,132,.3);border-color:var(--purple-mid);
+  box-shadow:0 8px 32px rgba(110,79,132,.32);transform:translateY(-4px);
+}
+.tool-pill.hub{
+  background:rgba(202,177,223,.09);border-color:rgba(202,177,223,.35);
+  color:var(--lavender);
+}
+.tool-pill.hub:hover{
+  background:rgba(202,177,223,.18);border-color:var(--lav-dim);
+  box-shadow:0 8px 32px rgba(202,177,223,.18);transform:translateY(-4px);
+}
+
+/* ─── DIVIDER ─── */
+.divider{
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--border),transparent);
+  margin:0;position:relative;z-index:1;
+}
+
+/* ─── THREE HEADS ─── */
+.heads-section{padding:100px 0 80px}
+
+.s-eye{
+  font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:4px;
+  text-transform:uppercase;color:var(--txt-f);
+  text-align:center;margin-bottom:14px;
+}
+.s-title{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(2em,5vw,3.4em);font-weight:800;
+  color:var(--near-white);letter-spacing:-.025em;
+  text-align:center;margin-bottom:56px;
+}
+
+.heads{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(330px,1fr));
+  gap:20px;
+}
+
+.head{
+  background:linear-gradient(160deg,rgba(16,12,26,.95),rgba(10,8,16,.9));
+  border:1px solid var(--bd);border-radius:14px;
+  padding:40px 34px;
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1),border-color .3s,box-shadow .3s;
+}
+
+/* Top accent bar */
+.head::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  opacity:0;transition:opacity .3s;border-radius:14px 14px 0 0;
+}
+/* Glow bg */
+.head::before{
+  content:'';position:absolute;inset:0;
+  opacity:0;transition:opacity .4s;pointer-events:none;border-radius:14px;
+}
+
+.head.navigator{--hc:var(--teal);--hg:var(--tg);--hs:var(--ts)}
+.head.navigator::before{background:radial-gradient(ellipse at 50% -20%,rgba(77,128,127,.2),transparent 65%)}
+.head.navigator::after{background:linear-gradient(90deg,transparent,var(--teal),transparent)}
+.head.navigator:hover{border-color:rgba(77,128,127,.45);transform:translateY(-10px);box-shadow:0 30px 70px rgba(77,128,127,.22)}
+
+.head.launchpad{--hc:var(--purple-mid);--hg:var(--pg);--hs:var(--ps)}
+.head.launchpad::before{background:radial-gradient(ellipse at 50% -20%,rgba(110,79,132,.22),transparent 65%)}
+.head.launchpad::after{background:linear-gradient(90deg,transparent,var(--purple-mid),transparent)}
+.head.launchpad:hover{border-color:rgba(110,79,132,.5);transform:translateY(-10px);box-shadow:0 30px 70px rgba(110,79,132,.28)}
+
+.head.hub{--hc:var(--lav-dim);--hg:var(--lg);--hs:var(--ls)}
+.head.hub::before{background:radial-gradient(ellipse at 50% -20%,rgba(202,177,223,.18),transparent 65%)}
+.head.hub::after{background:linear-gradient(90deg,transparent,var(--lav-dim),transparent)}
+.head.hub:hover{border-color:rgba(202,177,223,.35);transform:translateY(-10px);box-shadow:0 30px 70px rgba(202,177,223,.17)}
+
+.head:hover::before,.head:hover::after{opacity:1}
+
+.head-num{
+  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--hc);opacity:.45;margin-bottom:22px;
+}
+.head-icon{
+  font-size:2.2em;margin-bottom:22px;display:block;
+  transition:transform .3s;
+}
+.head:hover .head-icon{transform:scale(1.12)}
+
+.head-title{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:1.9em;font-weight:800;letter-spacing:-.025em;
+  color:var(--near-white);margin-bottom:7px;
+}
+.head-sub{
+  font-family:'JetBrains Mono',monospace;font-size:9px;
+  color:var(--hc);margin-bottom:20px;letter-spacing:.2px;
+}
+.head-desc{
+  font-size:.92em;color:var(--txt-d);line-height:1.82;margin-bottom:26px;flex-grow:1;
+}
+
+.signals{
+  padding:14px 16px;
+  background:rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.04);
+  border-radius:6px;margin-bottom:26px;
+}
+.sig-lbl{
+  font-family:'JetBrains Mono',monospace;font-size:7.5px;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--hc);opacity:.55;margin-bottom:9px;
+}
+.sig{
+  display:flex;align-items:baseline;gap:7px;
+  font-size:.83em;color:var(--txt-d);margin-bottom:5px;line-height:1.5;
+}
+.sig:last-child{margin-bottom:0}
+.sig-arrow{
+  color:var(--hc);opacity:.55;flex-shrink:0;
+  font-size:.8em;min-width:16px;text-align:center;
+}
+
+.head-btn{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;
+  border:1px solid var(--hc);border-radius:6px;
+  background:var(--hs);color:var(--hc);
+  text-decoration:none;
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;
+  letter-spacing:.5px;text-transform:uppercase;
+  transition:all .22s;
+}
+.head-btn:hover{background:var(--hg);box-shadow:0 0 28px var(--hg)}
+.head-btn .arr{transition:transform .18s}
+.head-btn:hover .arr{transform:translateX(5px)}
+
+/* ─── QUOTE ─── */
+.quote-section{
+  margin:70px 0;
+  padding:70px 64px;
+  background:linear-gradient(135deg,rgba(110,79,132,.12),rgba(77,128,127,.08));
+  border:1px solid var(--border);border-radius:16px;
+  text-align:center;position:relative;overflow:hidden;
+}
+.quote-section::before{
+  content:'"';
+  position:absolute;top:-60px;left:20px;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:320px;font-weight:900;line-height:1;
+  color:var(--purple);opacity:.035;pointer-events:none;
+  -webkit-text-fill-color:var(--purple);
+}
+blockquote{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(1.3em,3vw,2em);font-weight:700;
+  color:var(--near-white);line-height:1.4;
+  letter-spacing:-.03em;margin-bottom:22px;position:relative;
+}
+blockquote em{color:var(--lavender);font-style:normal}
+.quote-section p{
+  font-size:.95em;color:var(--txt-d);max-width:620px;margin:0 auto;line-height:1.82;
+  position:relative;
+}
+
+/* ─── WHY ─── */
+.why-section{padding:60px 0 80px}
+
+.why-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:16px;
+}
+.why-card{
+  padding:28px 26px;
+  background:rgba(14,10,22,.7);
+  border:1px solid var(--bd);border-radius:10px;
+  transition:all .22s;position:relative;
+}
+.why-card::before{
+  content:'';position:absolute;left:0;top:25%;bottom:25%;width:2px;
+  border-radius:2px;opacity:0;transition:opacity .22s;
+}
+.why-card:nth-child(3n+1)::before{background:var(--purple)}
+.why-card:nth-child(3n+2)::before{background:var(--teal)}
+.why-card:nth-child(3n)::before{background:var(--lav-dim)}
+.why-card:hover{border-color:var(--border);transform:translateX(4px)}
+.why-card:hover::before{opacity:.8}
+.why-icon{font-size:1.5em;margin-bottom:12px;display:block}
+.why-card h3{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:1.1em;font-weight:700;letter-spacing:-.02em;
+  color:var(--near-white);margin-bottom:8px;
+}
+.why-card p{font-size:.88em;color:var(--txt-d);line-height:1.78}
+
+/* ─── FINAL CTA ─── */
+.cta-section{
+  text-align:center;
+  padding:90px 60px;
+  background:linear-gradient(140deg,rgba(110,79,132,.15),rgba(77,128,127,.1));
+  border:1px solid var(--border);border-radius:16px;
+  margin:60px 0 100px;position:relative;overflow:hidden;
+}
+.cta-section::after{
+  content:'';position:absolute;
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(110,79,132,.18),transparent 60%);
+  top:-250px;right:-200px;pointer-events:none;
+}
+.cta-section::before{
+  content:'';position:absolute;
+  width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(77,128,127,.14),transparent 60%);
+  bottom:-180px;left:-120px;pointer-events:none;
+}
+.cta-section h2{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(2em,4.5vw,3.5em);font-weight:900;
+  color:var(--near-white);margin-bottom:16px;
+  letter-spacing:-.025em;position:relative;
+}
+.cta-section p{
+  font-size:.97em;color:var(--txt-d);
+  max-width:500px;margin:0 auto 44px;line-height:1.8;position:relative;
+}
+.cta-row{
+  display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+  position:relative;
+}
+.cta-gh{
+  display:block;margin-top:32px;
+  font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--txt-f);text-decoration:none;
+  transition:color .2s;position:relative;
+}
+.cta-gh:hover{color:var(--lav-dim)}
+
+/* ─── FOOTER ─── */
+footer{
+  padding:44px 0 36px;
+  border-top:1px solid var(--bd);
+  position:relative;z-index:1;
+}
+.foot-inner{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:20px;
+}
+.foot-brand{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;
+  color:var(--lav-dim);display:flex;align-items:center;gap:8px;
+  letter-spacing:-.02em;
+}
+.foot-links{display:flex;gap:3px;flex-wrap:wrap}
+.foot-link{
+  font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.5px;
+  text-transform:uppercase;padding:4px 10px;border-radius:3px;
+  color:var(--txt-f);text-decoration:none;transition:all .18s;
+}
+.foot-link:hover{color:var(--lav-dim);background:var(--ps)}
+.foot-meta{
+  width:100%;text-align:center;
+  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.5px;
+  color:var(--txt-f);margin-top:8px;
+}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  .heads{grid-template-columns:1fr}
+  .nav-link:not(.gh){display:none}
+  .quote-section{padding:50px 32px}
+  .cta-section{padding:60px 32px}
+}
+@media(max-width:600px){
+  .hero{padding:110px 0 60px}
+  .hero-tools{flex-direction:column;align-items:center}
+  .tool-pill{width:100%;max-width:280px;justify-content:center}
+  .cta-row{flex-direction:column;align-items:center}
+  .cta-section .tool-pill{width:100%;max-width:280px;justify-content:center}
+  .hero-orbit,.hero-orbit-2{display:none}
+  .foot-inner{flex-direction:column}
+  .foot-link{padding:6px 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-brand">
+      <div class="brand-hex"></div>
+      GitHub Atlas
+    </a>
+    <div class="nav-links">
+      <a href="navigator.html" class="nav-link">Navigator</a>
+      <a href="launchpad.html" class="nav-link">Launchpad</a>
+      <a href="repo-hub.html" class="nav-link">Hub</a>
+      <a href="https://github.com/blackmath88/github-atlas" target="_blank" class="nav-link gh">⭐ GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrapper">
+
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-orbit"></div>
+  <div class="hero-orbit-2"></div>
+
+  <div class="hero-eyebrow">Open source <span class="sep"></span> MIT <span class="sep"></span> No signup</div>
+  <h1 class="hero-title">Navigate<br/>What You<br/>Build</h1>
+  <div class="hero-sub">Three heads. One mission. Carry less weight.</div>
+  <p class="hero-desc">
+    Interactive maps for GitHub's ecosystem. Analyze risk. 
+    Discover the right libraries. Showcase your org to your community.
+  </p>
+  <div class="hero-tools">
+    <a href="navigator.html" class="tool-pill nav">🔍 Analyze risk →</a>
+    <a href="launchpad.html" class="tool-pill launch">🚀 Discover tools →</a>
+    <a href="repo-hub.html" class="tool-pill hub">🏢 Map your org →</a>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── THREE HEADS ─── -->
+<section class="heads-section" id="tools">
+  <div class="s-eye">The Three Heads</div>
+  <h2 class="s-title">One for every mission</h2>
+
+  <div class="heads">
+
+    <div class="head navigator">
+      <div class="head-num">Head 01 · navigator</div>
+      <span class="head-icon">🔍</span>
+      <div class="head-title">Navigator</div>
+      <div class="head-sub">Risk &amp; ecosystem health analysis</div>
+      <p class="head-desc">
+        You're not just exploring — you're <em>betting</em> on this ecosystem. Navigator shows you the real structure: who holds it together, what could break, whether it's sustainable.
+      </p>
+      <div class="signals">
+        <div class="sig-lbl">what you see</div>
+        <div class="sig"><span class="sig-arrow">→</span>Four analytical lenses — Architecture, Org Map, Health, Due Diligence</div>
+        <div class="sig"><span class="sig-arrow">→</span>Single-maintainer risk · stale repos · burnout signals</div>
+        <div class="sig"><span class="sig-arrow">→</span>Bridge engineers spanning 3+ repos — key people risk</div>
+        <div class="sig"><span class="sig-arrow">→</span>Health scoring · sustainability indicators</div>
+      </div>
+      <a href="navigator.html" class="head-btn">
+        <span>Launch Navigator</span><span class="arr">→</span>
+      </a>
+    </div>
+
+    <div class="head launchpad">
+      <div class="head-num">Head 02 · launchpad</div>
+      <span class="head-icon">🚀</span>
+      <div class="head-title">Launchpad</div>
+      <div class="head-sub">Find the right LLM tool in 30 seconds</div>
+      <p class="head-desc">
+        GitHub's 420M repositories weren't designed for the new wave of AI-curious users. Launchpad is the map that should have existed — curated, intent-first, persona-aware.
+      </p>
+      <div class="signals">
+        <div class="sig-lbl">what you see</div>
+        <div class="sig"><span class="sig-arrow">→</span>20 curated prompt &amp; LLM repos — hand-picked</div>
+        <div class="sig"><span class="sig-arrow">→</span>4 personas · Explorer, Builder, Prompter, Org Lead</div>
+        <div class="sig"><span class="sig-arrow">→</span>10 intent clusters · Frameworks, RAG, Agents, Production…</div>
+        <div class="sig"><span class="sig-arrow">→</span>🌲 Dark Forest — hides leaked system prompts by default</div>
+      </div>
+      <a href="launchpad.html" class="head-btn">
+        <span>Launch Launchpad</span><span class="arr">→</span>
+      </a>
+    </div>
+
+    <div class="head hub">
+      <div class="head-num">Head 03 · hub</div>
+      <span class="head-icon">🏢</span>
+      <div class="head-title">Hub</div>
+      <div class="head-sub">Map your org. Share with your community.</div>
+      <p class="head-desc">
+        Maintainers: your users deserve a map. Hub turns your entire GitHub org into an interactive visualization — embeddable in your README with one line of code.
+      </p>
+      <div class="signals">
+        <div class="sig-lbl">what you see</div>
+        <div class="sig"><span class="sig-arrow">→</span>All repos at a glance · by topic, language, or activity</div>
+        <div class="sig"><span class="sig-arrow">→</span>Health scores · active vs stale · star counts</div>
+        <div class="sig"><span class="sig-arrow">→</span>Auto-generated iframe embed code for README</div>
+        <div class="sig"><span class="sig-arrow">→</span>URL params <code style="font-family:'JetBrains Mono',monospace;font-size:.85em;color:var(--lav-dim)">?org=yourorg</code> for direct-link sharing</div>
+      </div>
+      <a href="repo-hub.html" class="head-btn">
+        <span>Launch Hub</span><span class="arr">→</span>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─── QUOTE ─── -->
+<div class="quote-section">
+  <blockquote>
+    "GitHub's chaos isn't the problem.<br/>
+    Not having a <em>map</em> is."
+  </blockquote>
+  <p>
+    The AI hype created a new class of GitHub users — people arriving from YouTube, LinkedIn, and ChatGPT who need 
+    intent-first navigation, not repository-first exploration. Atlas is the translation layer between what people want 
+    to accomplish and what GitHub actually contains.
+  </p>
+</div>
+
+<!-- ─── WHY ─── -->
+<section class="why-section" id="why">
+  <div class="s-eye">Why it works</div>
+  <h2 class="s-title" style="margin-bottom:44px">Built on three beliefs</h2>
+
+  <div class="why-grid">
+    <div class="why-card">
+      <span class="why-icon">🗺️</span>
+      <h3>Visual first, list never</h3>
+      <p>D3-powered force graphs. Drag, zoom, click. Complex ecosystems become visible at a glance instead of scrollable infinite lists.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">⚡</span>
+      <h3>Zero setup</h3>
+      <p>Static HTML + D3. No build process, no npm, no backend. Clone and open. Works on GitHub Pages anywhere. Demo data always included.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">🔐</span>
+      <h3>Privacy first</h3>
+      <p>All processing happens client-side. Your token never leaves your browser. No analytics, no tracking, no data collection. Ever.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">📊</span>
+      <h3>Real data, live</h3>
+      <p>GitHub API integration. Analyze actual organizations. Optional token for 5,000 req/hr. See what's really there, not what was last documented.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">📱</span>
+      <h3>Embed-native</h3>
+      <p>Hub generates iframe code automatically. One paste and your org has an interactive map in its README. URL params enable deep linking.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">🔨</span>
+      <h3>Built to be forked</h3>
+      <p>Intentionally simple. Each head is a single HTML file. Fork, brand, deploy. No lock-in. Designed for the community to extend.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FINAL CTA ─── -->
+<section class="cta-section" id="start">
+  <h2>Pick a head.<br/>Start now.</h2>
+  <p>No signup. No waiting. Each tool opens instantly with demo data already loaded.</p>
+  <div class="cta-row">
+    <a href="navigator.html" class="tool-pill nav" style="padding:14px 28px">🔍 Analyze risk →</a>
+    <a href="launchpad.html" class="tool-pill launch" style="padding:14px 28px">🚀 Discover tools →</a>
+    <a href="repo-hub.html" class="tool-pill hub" style="padding:14px 28px">🏢 Map your org →</a>
+  </div>
+  <a href="https://github.com/blackmath88/github-atlas" target="_blank" class="cta-gh">
+    ⭐ star on github · blackmath88/github-atlas
+  </a>
+</section>
+
+</div><!-- /wrapper -->
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="wrapper">
+    <div class="foot-inner">
+      <div class="foot-brand">
+        <div style="width:22px;height:22px;background:linear-gradient(135deg,var(--purple),var(--teal));clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)"></div>
+        GitHub Atlas
+      </div>
+      <div class="foot-links">
+        <a href="navigator.html" class="foot-link">Navigator</a>
+        <a href="launchpad.html" class="foot-link">Launchpad</a>
+        <a href="repo-hub.html" class="foot-link">Hub</a>
+        <a href="https://github.com/blackmath88/github-atlas" target="_blank" class="foot-link">GitHub</a>
+        <a href="https://github.com/blackmath88/github-atlas/blob/main/CONTRIBUTING.md" target="_blank" class="foot-link">Contribute</a>
+        <a href="https://github.com/blackmath88/github-atlas/blob/main/LICENSE" target="_blank" class="foot-link">MIT</a>
+      </div>
+      <div class="foot-meta">GitHub Atlas · Interactive maps for GitHub's ecosystem. Analyze risk. Discover libraries. Showcase your org. · <a href="https://github.com/blackmath88" style="color:var(--lav-dim);text-decoration:none">Created by @blackmath88</a> · <a href="https://github.com/blackmath88/github-atlas/blob/main/LICENSE" style="color:var(--lav-dim);text-decoration:none">MIT licensed</a> · Client-side only</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
