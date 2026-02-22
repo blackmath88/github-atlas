@@ -674,7 +674,7 @@ const REPOS = [
   {id:'r12',name:'promptslab/Awesome-Prompt-Engineering',stars:3900,desc:'Curated resources, papers, and techniques for prompt engineering.',url:'https://github.com/promptslab/Awesome-Prompt-Engineering',trust:'community',clusters:['prompt-engineering','prompt-collections'],language:'Markdown',personas:['prompter']},
   // RAG / data
   {id:'r13',name:'chroma-core/chroma',stars:15000,desc:'The open-source embedding database. Essential for RAG pipelines.',url:'https://github.com/chroma-core/chroma',trust:'community',clusters:['rag','production'],language:'Python',personas:['builder']},
-  {id:'r14',name:'jerryjliu/llama_index',stars:36000,desc:'Data framework for LLM applications — search, summarize, chat with your docs.',url:'https://github.com/run-llama/llama_index',trust:'community',clusters:['rag','frameworks'],language:'Python',personas:['builder','org']},
+  {id:'r14',name:'qdrant/qdrant',stars:21000,desc:'High-performance vector search engine. Production-grade alternative to Chroma for serious RAG deployments.',url:'https://github.com/qdrant/qdrant',trust:'community',clusters:['rag','production'],language:'Rust',personas:['builder','org']},
   // Agents
   {id:'r15',name:'Significant-Gravitas/AutoGPT',stars:168000,desc:'The original autonomous AI agent. Loops, plans, executes tasks end-to-end.',url:'https://github.com/Significant-Gravitas/AutoGPT',trust:'community',clusters:['agents','getting-started'],language:'Python',personas:['explorer','builder']},
   {id:'r16',name:'geekan/MetaGPT',stars:44000,desc:'Multi-agent software company in Python. Roles: CEO, CTO, developer agents.',url:'https://github.com/geekan/MetaGPT',trust:'community',clusters:['agents','workflow'],language:'Python',personas:['builder','org']},
@@ -684,6 +684,19 @@ const REPOS = [
   // Tools / production
   {id:'r19',name:'BerriAI/litellm',stars:13000,desc:'Call any LLM using OpenAI format. One interface for 100+ models.',url:'https://github.com/BerriAI/litellm',trust:'community',clusters:['production','api-usage'],language:'Python',personas:['builder','org']},
   {id:'r20',name:'ggerganov/llama.cpp',stars:66000,desc:'Run LLMs locally in C++. The engine behind local AI.',url:'https://github.com/ggerganov/llama.cpp',trust:'community',clusters:['models','production'],language:'C++',personas:['builder']},
+  // Local / self-hosted
+  {id:'r21',name:'ollama/ollama',stars:90000,desc:'Run Llama, Mistral, Gemma and more locally. The easiest on-ramp to local AI.',url:'https://github.com/ollama/ollama',trust:'community',clusters:['models','getting-started'],language:'Go',personas:['explorer','builder']},
+  {id:'r22',name:'open-webui/open-webui',stars:50000,desc:'Beautiful ChatGPT-style UI for local models via Ollama or OpenAI API. Zero coding required.',url:'https://github.com/open-webui/open-webui',trust:'community',clusters:['getting-started','models'],language:'Svelte',personas:['explorer']},
+  // Agents (modern)
+  {id:'r23',name:'crewAIInc/crewAI',stars:30000,desc:'Orchestrate role-playing AI agents as a crew. The hot multi-agent framework of 2024–25.',url:'https://github.com/crewAIInc/crewAI',trust:'community',clusters:['agents','workflow'],language:'Python',personas:['builder','org']},
+  {id:'r24',name:'microsoft/semantic-kernel',stars:22000,desc:'Microsoft\'s enterprise agent SDK. Integrates with Azure, Office, and M365 ecosystems.',url:'https://github.com/microsoft/semantic-kernel',trust:'official',clusters:['agents','production'],language:'C#',personas:['builder','org']},
+  // RAG / data (extended)
+  {id:'r25',name:'pgvector/pgvector',stars:14000,desc:'Vector similarity search inside PostgreSQL. No new infra — extend your existing database.',url:'https://github.com/pgvector/pgvector',trust:'community',clusters:['rag','production'],language:'C',personas:['org','builder']},
+  // Getting started
+  {id:'r26',name:'microsoft/generative-ai-for-beginners',stars:67000,desc:'18-lesson course by Microsoft covering all GenAI fundamentals. Best structured starting point.',url:'https://github.com/microsoft/generative-ai-for-beginners',trust:'official',clusters:['getting-started'],language:'Jupyter',personas:['explorer']},
+  // Evaluation
+  {id:'r27',name:'confident-ai/deepeval',stars:6000,desc:'LLM evaluation framework. Test hallucinations, relevance, toxicity — like pytest for your AI app.',url:'https://github.com/confident-ai/deepeval',trust:'community',clusters:['evaluation','production'],language:'Python',personas:['builder','org']},
+  {id:'r28',name:'explodinggradients/ragas',stars:7000,desc:'Evaluation framework specifically for RAG pipelines. Measures faithfulness, relevance, precision.',url:'https://github.com/explodinggradients/ragas',trust:'community',clusters:['evaluation','rag'],language:'Python',personas:['builder','org']},
 ];
 
 const CLUSTERS = [
@@ -697,14 +710,15 @@ const CLUSTERS = [
   {id:'api-usage', label:'🔌 API Usage', color:'#c08040'},
   {id:'production', label:'🚢 Production', color:'#905030'},
   {id:'models', label:'🧠 Models', color:'#d09040'},
+  {id:'evaluation', label:'🧪 Evaluation', color:'#6080c0'},
 ];
 
 const TRUST_COLORS = {official:'#f0a830', community:'#60c060', sensitive:'#a060c0'};
 const PERSONA_CLUSTERS = {
   explorer:['getting-started','prompt-collections','agents','models'],
-  builder:['frameworks','api-usage','rag','production','agents'],
+  builder:['frameworks','api-usage','rag','production','agents','evaluation'],
   prompter:['prompt-engineering','prompt-collections','getting-started'],
-  org:['frameworks','production','workflow','agents'],
+  org:['frameworks','production','workflow','agents','evaluation'],
 };
 
 /* ═══════════════════════════════════════════════════════
