@@ -104,7 +104,7 @@ Ideas especially welcome for:
 
 **Achim Imboden** · [@blackmath88](https://github.com/blackmath88)
 
-*AI Readiness Architect · University of Basel*
+*AI Readiness Architect* www.linkedin.com/in/achimimboden
 
 ---
 
