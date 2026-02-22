@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>GitHub Atlas — Navigator</title>
+<meta name="description" content="Risk & ecosystem health analysis for GitHub organizations and repositories."/>
+<meta property="og:title" content="GitHub Atlas — Navigator"/>
+<meta property="og:description" content="Interactive maps for GitHub's ecosystem. Analyze risk. Discover libraries. Showcase your org."/>
+<meta property="og:image" content="https://github.com/blackmath88/github-atlas/raw/main/preview.png"/>
+<meta property="og:url" content="https://blackmath88.github.io/github-atlas/navigator.html"/>
+<meta property="og:type" content="website"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 10 L90 30 L90 70 L50 90 L10 70 L10 30 Z' fill='%236e4f84' stroke='%234d807f' stroke-width='2'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<style>
+/* ── RESET ── */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+
+/* ── INDEX-MATCHED DESIGN TOKENS ── */
+:root{
+  --purple:    #6e4f84;
+  --purple-mid:#8b6aa0;
+  --lavender:  #cab1df;
+  --lav-dim:   #9d84b8;
+  --teal:      #4d807f;
+  --teal-hi:   #6aa8a7;
+  --near-white:#f7f1fb;
+
+  --pg: rgba(110,79,132,.18);
+  --ps: rgba(110,79,132,.09);
+  --tg: rgba(77,128,127,.16);
+  --ts: rgba(77,128,127,.09);
+  --lg: rgba(202,177,223,.14);
+  --ls: rgba(202,177,223,.07);
+
+  --bg:     #080610;
+  --border: rgba(110,79,132,.2);
+  --bd:     rgba(110,79,132,.1);
+  --txt:    #c4b4d8;
+  --txt-d:  #9a88b8;
+  --txt-f:  #584870;
+}
+
+/* ── ANIMATIONS — identical to index ── */
+@keyframes shimmer   {0%{background-position:-300% center}100%{background-position:300% center}}
+@keyframes fadeUp    {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn    {from{opacity:0}to{opacity:1}}
+@keyframes scan      {0%{transform:translateY(-100%);opacity:0}8%{opacity:1}92%{opacity:1}100%{transform:translateY(100vh);opacity:0}}
+@keyframes blink     {0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes spin      {0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+@keyframes float     {0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes glow-pulse{0%,100%{opacity:.4}50%{opacity:.9}}
+@keyframes bar-fill  {from{width:0}to{width:var(--w)}}
+@keyframes toast-in  {from{opacity:0;transform:translateY(8px) translateX(-50%)}to{opacity:1;transform:translateY(0) translateX(-50%)}}
+@keyframes toast-out {from{opacity:1;transform:translateY(0) translateX(-50%)}to{opacity:0;transform:translateY(-8px) translateX(-50%)}}
+@keyframes pulse-risk{0%,100%{opacity:.12;transform:scale(1)}50%{opacity:.45;transform:scale(1.12)}}
+@keyframes pulse-cluster{0%,100%{opacity:.06;transform:scale(1)}50%{opacity:.18;transform:scale(1.08)}}
+@keyframes pulse-star{0%,100%{opacity:.1;transform:scale(1)}50%{opacity:.35;transform:scale(1.1)}}
+
+/* ── BACKGROUND — same as index ── */
+body{
+  background:
+    radial-gradient(ellipse 1400px 800px at 10%  5%, #140a24,  transparent 50%),
+    radial-gradient(ellipse 1000px 600px at 90% 95%, #0c0a1c,  transparent 50%),
+    radial-gradient(ellipse 700px  500px at 60% 45%, #0a0815,  transparent 55%),
+    var(--bg);
+  color:var(--txt);
+  font-family:'Plus Jakarta Sans',sans-serif;
+  line-height:1.6;
+  height:100%;
+}
+/* Dot grid */
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:radial-gradient(circle,#2a1840 1px,transparent 1px);
+  background-size:32px 32px;opacity:.22;pointer-events:none;z-index:0;
+}
+/* Scan line */
+body::after{
+  content:'';position:fixed;left:0;right:0;height:200px;
+  background:linear-gradient(180deg,transparent,rgba(110,79,132,.06),transparent);
+  animation:scan 18s linear infinite;pointer-events:none;z-index:0;
+}
+/* ── NAVIGATOR ACCENT ── */
+:root{
+  --ac:    #4d807f;
+  --ac-hi: #6aa8a7;
+  --ac-g:  rgba(77,128,127,.18);
+  --ac-s:  rgba(77,128,127,.09);
+}
+
+/* ── LAYOUT ── */
+/* ── ATLAS NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  background:rgba(8,6,16,.85);
+  border-bottom:1px solid var(--bd);
+  backdrop-filter:blur(16px);
+}
+.nav-inner{
+  max-width:unset;padding:0 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  height:54px;
+}
+.nav-brand{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:700;
+  color:var(--lavender);display:flex;align-items:center;gap:10px;
+  text-decoration:none;letter-spacing:-.02em;
+}
+.brand-hex{
+  width:26px;height:26px;
+  background:linear-gradient(135deg,var(--purple),var(--teal));
+  clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;color:white;flex-shrink:0;
+}
+.nav-links{display:flex;align-items:center;gap:3px}
+.nav-link{
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.5px;
+  text-transform:uppercase;padding:5px 11px;border-radius:3px;
+  color:var(--txt-d);text-decoration:none;border:1px solid transparent;
+  transition:all .18s;
+}
+.nav-link:hover{color:var(--lavender);border-color:var(--bd);background:var(--ps)}
+.nav-link.active{color:var(--lavender);border-color:var(--border);background:var(--pg)}
+.nav-link.gh{border-color:var(--bd);color:var(--lav-dim)}
+.nav-link.gh:hover{border-color:var(--border)}
+
+.layout{
+  position:relative;z-index:1;
+  display:grid;grid-template-columns:var(--col-l,300px) 1fr var(--col-r,360px);
+  height:calc(100vh - 54px);
+  margin-top:54px;
+}
+
+/* ── PANELS — glass cards like index heads ── */
+.panel{
+  background:linear-gradient(160deg,rgba(16,12,26,.95),rgba(10,8,16,.92));
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;position:relative;
+  backdrop-filter:blur(8px);
+}
+.panel::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(0deg,transparent,transparent 48px,rgba(110,79,132,.014) 48px,rgba(110,79,132,.014) 49px);
+}
+.panel.right{border-right:none;border-left:1px solid var(--border)}
+
+/* ── PANEL HEADER ── */
+.p-hdr{
+  padding:18px 18px 14px;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(180deg,rgba(20,12,32,.7),transparent);
+  flex-shrink:0;position:relative;z-index:1;
+}
+.eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--txt-f);margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;
+}
+.eyebrow::before{content:'';width:14px;height:1px;background:var(--txt-f);flex-shrink:0}
+.p-hdr h1{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:16px;font-weight:800;line-height:1.2;letter-spacing:-.025em;
+  background:linear-gradient(90deg,var(--near-white),var(--ac-hi,var(--lavender)),var(--near-white));
+  background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:shimmer 9s linear infinite;
+}
+.p-hdr .sub{
+  margin-top:6px;font-size:11px;line-height:1.55;color:var(--txt-f);
+}
+
+/* ── STATS BAR ── */
+.stats{
+  display:flex;border-bottom:1px solid var(--border);flex-shrink:0;
+  position:relative;z-index:1;background:rgba(0,0,0,.12);
+}
+.stat{flex:1;text-align:center;padding:11px 4px;border-right:1px solid var(--bd)}
+.stat:last-child{border-right:none}
+.stat b{
+  font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:400;
+  color:var(--ac-hi,var(--lavender));display:block;line-height:1;
+}
+.stat b.risk-val{color:#e06060}
+.stat span{
+  font-family:'JetBrains Mono',monospace;
+  font-size:7px;letter-spacing:1.8px;text-transform:uppercase;
+  color:var(--txt-f);margin-top:3px;display:block;
+}
+
+/* ── SCROLL AREAS ── */
+.scroll{flex:1;overflow-y:auto;padding:14px;position:relative;z-index:1}
+.scroll::-webkit-scrollbar{width:2px}
+.scroll::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
+
+/* ── SECTION LABELS ── */
+.lbl{
+  font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:3.5px;
+  text-transform:uppercase;color:var(--ac,var(--purple-mid));opacity:.6;
+  margin:14px 0 8px;display:flex;align-items:center;gap:8px;
+}
+.lbl::after{content:'';flex:1;height:1px;background:var(--bd)}
+
+/* ── INPUTS ── */
+.search-form{display:flex;flex-direction:column;gap:6px;padding-bottom:14px;border-bottom:1px solid var(--bd);margin-bottom:2px}
+.search-row{display:flex;gap:6px}
+.search-row input,
+.token-row input,
+.scenario-picker select{
+  flex:1;background:rgba(0,0,0,.38);
+  border:1px solid var(--border);border-radius:6px;
+  color:var(--txt);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;
+  padding:8px 12px;outline:none;transition:border-color .2s,box-shadow .2s;
+  -webkit-appearance:none;appearance:none;
+}
+.search-row input:focus,
+.token-row input:focus,
+.scenario-picker select:focus{
+  border-color:var(--ac,var(--purple-mid));
+  box-shadow:0 0 0 2px rgba(110,79,132,.12);
+}
+.search-row input::placeholder,
+.token-row input::placeholder{color:var(--txt-f);font-size:11px}
+.token-row input{
+  width:100%;color:var(--txt-d);font-size:11px;padding:7px 10px;
+}
+
+.field-label{
+  font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--txt-f);
+  margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;
+}
+.scenario-picker{display:flex;flex-direction:column;gap:6px;padding-bottom:14px;border-bottom:1px solid var(--bd);margin-bottom:2px}
+.scenario-picker select{cursor:pointer;color:var(--txt-d)}
+.scenario-help{
+  font-size:11px;color:var(--txt-d);line-height:1.65;
+  padding:10px 12px;background:rgba(110,79,132,.07);
+  border:1px solid var(--bd);border-radius:6px;
+  margin:8px 0 10px;border-left:2px solid var(--ac,var(--purple-mid));
+}
+
+/* ── BUTTONS ── */
+.search-row button{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.3px;
+  padding:0 14px;border:1px solid var(--ac,var(--purple-mid));border-radius:6px;
+  background:rgba(110,79,132,.1);color:var(--ac-hi,var(--lavender));cursor:pointer;
+  transition:all .2s;white-space:nowrap;
+}
+.search-row button:hover:not(:disabled){
+  background:rgba(110,79,132,.2);border-color:var(--ac-hi,var(--lavender));
+}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.btn{
+  font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.3px;
+  padding:8px 6px;border:1px solid var(--bd);border-radius:6px;
+  background:rgba(0,0,0,.22);color:var(--txt-d);cursor:pointer;
+  transition:all .2s cubic-bezier(.34,1.56,.64,1);text-align:center;
+}
+.btn:hover{
+  border-color:var(--border);color:var(--near-white);
+  background:rgba(110,79,132,.1);transform:translateY(-1px);
+}
+.btn.on{
+  border-color:var(--ac,var(--purple-mid));
+  color:var(--ac-hi,var(--lavender));
+  background:rgba(110,79,132,.14);
+  box-shadow:0 0 18px rgba(110,79,132,.18);
+}
+.btn.full{grid-column:1/-1}
+/* per-tool on variants */
+.btn.risk-btn.on{border-color:#e06060;color:#e06060;background:rgba(224,96,96,.1);box-shadow:0 0 14px rgba(224,96,96,.15)}
+.btn.bridge-btn.on{border-color:#d4a830;color:#d4a830;background:rgba(212,168,48,.1)}
+.btn.dark-forest.on{border-color:rgba(77,128,127,.7);color:var(--teal-hi);background:rgba(77,128,127,.12)}
+.btn.demo-btn{border-color:rgba(77,214,140,.35);color:#4dd68c}
+.btn.demo-btn:hover{background:rgba(77,214,140,.1)}
+
+/* ── SLIDERS ── */
+.srow{display:flex;justify-content:space-between;margin-bottom:5px;align-items:baseline}
+.srow span{font-size:10px;color:var(--txt-f)}
+.srow b{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ac-hi,var(--lavender));min-width:32px;text-align:right}
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:2px;margin-bottom:12px;
+  background:linear-gradient(90deg,rgba(110,79,132,.3),var(--bd));
+  border-radius:2px;outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:12px;height:12px;border-radius:50%;
+  background:var(--ac-hi,var(--lavender));cursor:pointer;
+  box-shadow:0 0 10px rgba(110,79,132,.4);
+}
+
+/* ── CENTER CANVAS ── */
+.center{position:relative;overflow:hidden}
+#viz{width:100%;height:100%;display:block;cursor:crosshair}
+#viz:active{cursor:grabbing}
+
+/* ── HUD ── */
+.hud{
+  position:absolute;top:14px;left:14px;
+  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--txt-f);
+  background:rgba(8,6,16,.88);border:1px solid var(--border);
+  padding:7px 12px;border-radius:6px;pointer-events:none;
+  display:flex;align-items:center;gap:8px;
+  backdrop-filter:blur(8px);
+}
+.hud-dot{width:5px;height:5px;border-radius:50%;background:var(--ac,var(--purple-mid));animation:blink 2.2s infinite}
+
+/* ── LEGEND ── */
+.legend{
+  position:absolute;bottom:14px;left:14px;
+  background:rgba(8,6,16,.88);border:1px solid var(--border);
+  padding:10px 14px;border-radius:6px;pointer-events:none;
+  font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--txt-f);
+  backdrop-filter:blur(8px);
+}
+.legend-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+.legend-row:last-child{margin-bottom:0}
+.legend-dot{width:7px;height:7px;border-radius:50%}
+
+/* ── EMBED BADGE ── */
+.embed-badge{
+  position:absolute;top:14px;right:14px;
+  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--txt-f);background:rgba(8,6,16,.88);border:1px solid var(--bd);
+  padding:6px 11px;border-radius:6px;pointer-events:none;
+  backdrop-filter:blur(8px);
+}
+
+/* ── LOADING ── */
+.loading-state{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  background:rgba(8,6,16,.96);border:1px solid var(--border);border-radius:12px;
+  padding:28px 40px;text-align:center;z-index:100;
+  backdrop-filter:blur(12px);
+}
+.loading-state .spinner{
+  display:inline-block;width:24px;height:24px;
+  border:2px solid var(--bd);border-top:2px solid var(--ac-hi,var(--lavender));
+  border-radius:50%;animation:spin 1s linear infinite;margin-bottom:14px;
+}
+.loading-state .msg{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txt-d)}
+
+/* ── TOOLTIP ── */
+#tip{
+  position:fixed;background:rgba(8,6,16,.96);
+  border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;pointer-events:none;z-index:200;display:none;max-width:230px;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+  backdrop-filter:blur(12px);
+}
+#tip .tn{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;color:var(--ac-hi,var(--lavender));letter-spacing:-.01em}
+#tip .tm{font-size:10px;color:var(--txt-d);margin-top:4px;line-height:1.5}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  background:rgba(8,6,16,.96);border:1px solid var(--border);
+  border-radius:8px;padding:10px 20px;
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  z-index:300;pointer-events:none;white-space:nowrap;
+  backdrop-filter:blur(12px);
+}
+.toast.ok  {border-color:rgba(77,214,140,.45);color:#4dd68c}
+.toast.err {border-color:rgba(224,96,96,.45);color:#e06060}
+.toast.warn{border-color:rgba(212,168,48,.45);color:#d4a830}
+.toast.info{border-color:var(--border);color:var(--ac-hi,var(--lavender))}
+.toast.entering{animation:toast-in .25s ease forwards}
+.toast.leaving {animation:toast-out .25s ease forwards}
+
+/* ── DETAIL PANEL ── */
+.d-hero{
+  padding:16px;border-bottom:1px solid var(--border);
+  animation:fadeUp .28s ease;position:relative;z-index:1;
+}
+.d-typelbl{
+  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;
+  text-transform:uppercase;margin-bottom:8px;color:var(--ac-hi,var(--lavender));
+}
+.d-name{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:15px;font-weight:800;line-height:1.25;
+  color:var(--near-white);letter-spacing:-.025em;
+}
+.d-sub{margin-top:4px;font-size:11px;color:var(--txt-d);line-height:1.5}
+
+.badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-family:'JetBrains Mono',monospace;font-size:7.5px;
+  border:1px solid var(--bd);padding:3px 8px;border-radius:4px;
+  background:rgba(0,0,0,.3);color:var(--txt-d);
+}
+.badge .bd{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+
+.kv{
+  display:grid;grid-template-columns:72px 1fr;gap:6px 10px;
+  padding:12px 16px;border-bottom:1px solid var(--bd);position:relative;z-index:1;
+}
+.kk{
+  font-family:'JetBrains Mono',monospace;font-size:8px;
+  letter-spacing:.8px;text-transform:uppercase;color:var(--txt-f);padding-top:1px;
+}
+.vv{font-size:11px;color:var(--txt-d)}
+.vv a{color:var(--ac-hi,var(--lavender));text-decoration:none}
+.vv a:hover{text-decoration:underline}
+.vv.good{color:#4dd68c}
+.vv.warn{color:#d4a830}
+.vv.bad{color:#e06060}
+
+/* Health bar */
+.health-bar-wrap{margin-top:5px}
+.health-bar-bg{height:3px;background:var(--bd);border-radius:2px;overflow:hidden}
+.health-bar-fg{height:3px;border-radius:2px;animation:bar-fill .7s ease forwards;width:0}
+
+.d-sec{padding:12px 16px;border-bottom:1px solid var(--bd);position:relative;z-index:1}
+.d-sec:last-child{border-bottom:none}
+.d-sec h3{
+  font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--ac,var(--purple-mid));opacity:.6;margin-bottom:10px;
+}
+.d-sec p{font-size:11px;line-height:1.75;color:var(--txt-d)}
+.d-sec p strong{color:var(--txt)}
+
+.conn-list{display:flex;flex-direction:column;gap:4px}
+.conn{
+  padding:7px 10px;border:1px solid var(--bd);border-radius:6px;
+  background:rgba(0,0,0,.18);cursor:pointer;transition:all .18s;
+  display:flex;justify-content:space-between;align-items:center;gap:8px;
+}
+.conn:hover{
+  border-color:var(--border);background:rgba(110,79,132,.08);
+  transform:translateX(2px);
+}
+.cn{font-size:11px;color:var(--txt);font-weight:500}
+.cm{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt-f);flex-shrink:0}
+.conn-signal{font-size:10px}
+
+.hint-txt{font-size:11px;line-height:1.78;color:var(--txt-d)}
+.hint-txt strong{color:var(--txt)}
+
+/* ── GRAPH NODES ── */
+.g-node{cursor:pointer}
+.g-node circle{transition:all .2s}
+.g-node:hover circle.main-circle{filter:brightness(1.5)}
+.g-node text{
+  font-family:'JetBrains Mono',monospace;font-size:8px;
+  fill:var(--near-white);pointer-events:none;
+  text-shadow:0 1px 8px rgba(0,0,0,1),0 0 20px rgba(0,0,0,.9);
+}
+.g-node.dim{opacity:.05}
+.g-node.focus{opacity:1}
+.g-node.cluster-node circle.main-circle{animation:float 4s ease-in-out infinite}
+
+/* ── NAVIGATOR-SPECIFIC ── */
+:root{--col-l:300px;--col-r:360px}
+.search-row button{
+  background:var(--ac-s);color:var(--ac-hi);border-color:var(--ac);
+}
+.search-row button:hover:not(:disabled){background:var(--ac-g);border-color:var(--ac-hi)}
+input[type=range]{background:linear-gradient(90deg,rgba(77,128,127,.3),var(--bd))}
+input[type=range]::-webkit-slider-thumb{background:var(--ac-hi);box-shadow:0 0 10px rgba(77,128,127,.4)}
+.btn.on{border-color:var(--ac);color:var(--ac-hi);background:var(--ac-s);box-shadow:0 0 18px var(--ac-g)}
+.hud-dot{background:var(--ac)}
+.stat b{color:var(--ac-hi)}
+
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="nav-brand">
+      <div class="brand-hex"></div>
+      GitHub Atlas
+    </a>
+    <div class="nav-links">
+      <a href="navigator.html" class="nav-link active">Navigator</a>
+      <a href="launchpad.html" class="nav-link">Launchpad</a>
+      <a href="repo-hub.html" class="nav-link">Hub</a>
+      <a href="https://github.com/blackmath88/github-atlas" target="_blank" class="nav-link gh">⭐ GitHub</a>
+    </div>
+  </div>
+</nav>
+
+
+<div id="tip"><div class="tn" id="tn"></div><div class="tm" id="tm"></div></div>
+
+<div class="layout">
+
+<!-- ══════════════════════════════════
+     LEFT PANEL
+══════════════════════════════════ -->
+<div class="panel">
+  <div class="p-hdr">
+    <div class="eyebrow">github atlas · navigator</div>
+    <h1>Risk &amp; Health Analysis</h1>
+    <div class="sub" id="headerSub">Evaluate ecosystem stability &amp; architecture.</div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b id="sN">—</b><span>nodes</span></div>
+    <div class="stat"><b id="sL">—</b><span>links</span></div>
+    <div class="stat"><b id="sR" class="risk-val">—</b><span>at risk</span></div>
+    <div class="stat"><b id="sB">—</b><span>bridges</span></div>
+  </div>
+  <div class="scroll">
+
+    <div class="lbl">analytical lens</div>
+    <div class="scenario-picker">
+      <select id="scenarioSelect">
+        <option value="architecture">🏗️ Architecture Review</option>
+        <option value="org-mapping">🏢 Org / Knowledge Map</option>
+        <option value="ecosystem-health">❤️ Ecosystem Health</option>
+        <option value="due-diligence">📊 Due Diligence</option>
+      </select>
+    </div>
+    <div class="scenario-help" id="scenarioHelp"></div>
+
+    <div class="lbl">target</div>
+    <div class="search-form">
+      <div class="search-row">
+        <input id="queryInput" type="text" placeholder="org or repo name…" />
+        <button id="searchBtn">Analyze</button>
+      </div>
+      <div class="token-row">
+        <input id="tokenInput" type="password" placeholder="GitHub token — required for large orgs (60 req/hr without)"/>
+      </div>
+    </div>
+
+    <div class="lbl">focus filters</div>
+    <div class="btns">
+      <button class="btn risk-btn" id="btnRisk">⚠ At Risk</button>
+      <button class="btn bridge-btn" id="btnBridge">◈ Bridges</button>
+      <button class="btn full" id="btnCritical">⭐ Critical Only</button>
+      <button class="btn full demo-btn" id="btnDemo">⬡ Load Demo Data</button>
+      <button class="btn full" id="btnReset">// reset view</button>
+    </div>
+
+    <div class="lbl">force calibration</div>
+    <div class="srow"><span>repulsion</span><b id="cV">-90</b></div>
+    <input type="range" id="charge" min="-220" max="-20" value="-90">
+    <div class="srow"><span>link distance</span><b id="dV">80</b></div>
+    <input type="range" id="linkDist" min="25" max="220" value="80">
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     CENTER / GRAPH
+══════════════════════════════════ -->
+<div class="center">
+  <div class="hud"><span class="hud-dot"></span><span id="hudTxt">drag · scroll · click</span></div>
+  <svg id="viz"></svg>
+  <div class="legend" id="legend" style="display:none">
+    <div class="legend-row"><div class="legend-dot" style="background:#4d8ef0"></div>Repository</div>
+    <div class="legend-row"><div class="legend-dot" style="background:#f0a030"></div>Contributor</div>
+    <div class="legend-row"><div class="legend-dot" style="background:#34d399"></div>Language</div>
+    <div class="legend-row" style="margin-top:4px"><div class="legend-dot" style="background:#f05050;box-shadow:0 0 4px #f05050"></div>At risk</div>
+    <div class="legend-row"><div class="legend-dot" style="background:#f0c040;box-shadow:0 0 4px #f0c040"></div>Bridge</div>
+    <div class="legend-row"><div class="legend-dot" style="background:#ffd97a;box-shadow:0 0 4px #ffd97a55"></div>Critical</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     RIGHT PANEL
+══════════════════════════════════ -->
+<div class="panel right">
+  <div class="p-hdr">
+    <div class="eyebrow">analysis</div>
+    <h1 id="dName">Select a node</h1>
+    <div class="sub" id="dSub">Click any repo or contributor to inspect.</div>
+  </div>
+  <div class="scroll" id="dPane">
+    <div style="height:10px"></div>
+    <div class="hint-txt">
+      Choose a lens, enter an org or repo name, then hit Analyze.<br><br>
+      <strong>Architecture</strong> — stability, single maintainers, inactive repos<br><br>
+      <strong>Org Mapping</strong> — knowledge concentration, bridge engineers, burnout risk<br><br>
+      <strong>Ecosystem Health</strong> — sustainability, commit trends, contributor churn<br><br>
+      <strong>Due Diligence</strong> — risk profile for investment or critical adoption<br><br>
+      <strong>No GitHub token?</strong> Hit "Load Demo Data" to explore a synthetic ecosystem.
+    </div>
+  </div>
+</div>
+
+</div><!-- /layout -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════ */
+let CURRENT_DATA = null;
+let CURRENT_SCENARIO = 'architecture';
+let sim = null;
+let nodeSel = null, linkSel = null;
+let selId = null;
+let riskOnly = false, bridgeOnly = false, criticalOnly = false;
+
+const SCENARIOS = {
+  'architecture': {
+    subtitle: 'Is this stable? Who maintains it? What could break?',
+    help: 'Repos colored by maintenance health. Red = single maintainer risk. Gold ring = critical dependency. Bridge engineers highlighted.',
+    nodeColor: d => {
+      if (d.type === 'repo') return d.risk ? '#f05050' : d.inactive ? '#6060a0' : '#4d8ef0';
+      if (d.type === 'contributor') return d.bridge ? '#f0c040' : '#f0a030';
+      return '#34d399';
+    },
+    nodeSize: d => {
+      if (d.type === 'repo') return mapRange(Math.log(d.stars + 1), 0, 14, 6, 24);
+      if (d.type === 'contributor') return d.bridge ? 14 : 8;
+      return 7;
+    }
+  },
+  'org-mapping': {
+    subtitle: 'Who knows what? Where is knowledge concentrated?',
+    help: 'Contributor size = knowledge load. Gold = bridge engineer (knows multiple systems). Red = single point of failure. Repos sized by contributor count.',
+    nodeColor: d => {
+      if (d.type === 'contributor') return d.bridge ? '#f0c040' : d.burnout_risk ? '#f05050' : '#f0a030';
+      if (d.type === 'repo') return d.single_maintainer ? '#f05050' : '#4d8ef0';
+      return '#34d399';
+    },
+    nodeSize: d => {
+      if (d.type === 'contributor') return mapRange(d.repo_count || 1, 1, 8, 7, 22);
+      if (d.type === 'repo') return mapRange(d.contributor_count || 1, 1, 20, 5, 18);
+      return 6;
+    }
+  },
+  'ecosystem-health': {
+    subtitle: 'Is this sustainable? Or quietly dying?',
+    help: 'Node size = health score. Red pulse = burnout signal. Gray = stale/inactive. Green = actively maintained. Gold = high criticality.',
+    nodeColor: d => {
+      if (d.type === 'repo') {
+        if (d.inactive) return '#5050a0';
+        const h = d.health_score || 50;
+        if (h > 70) return '#4dd68c';
+        if (h > 40) return '#4d8ef0';
+        return '#f05050';
+      }
+      if (d.type === 'contributor') return d.burnout_risk ? '#f05050' : '#f0a030';
+      return '#34d399';
+    },
+    nodeSize: d => {
+      if (d.type === 'repo') return mapRange(d.health_score || 50, 0, 100, 5, 22);
+      if (d.type === 'contributor') return d.burnout_risk ? 14 : 8;
+      return 6;
+    }
+  },
+  'due-diligence': {
+    subtitle: 'What is the real risk profile here?',
+    help: 'Red = high risk (single maintainer + inactive). Gold = mission critical. Size = impact score (stars × activity). Bridge engineers are key people risk.',
+    nodeColor: d => {
+      if (d.type === 'repo') {
+        if (d.risk && d.inactive) return '#f02020';
+        if (d.risk) return '#f05050';
+        if (d.criticality > 5) return '#ffd97a';
+        return '#4d8ef0';
+      }
+      if (d.type === 'contributor') return d.bridge ? '#ffd97a' : '#f0a030';
+      return '#34d399';
+    },
+    nodeSize: d => {
+      if (d.type === 'repo') {
+        const impact = Math.log(d.stars + 1) * (d.inactive ? 0.3 : 1);
+        return mapRange(impact, 0, 14, 5, 26);
+      }
+      if (d.type === 'contributor') return d.bridge ? 16 : 8;
+      return 6;
+    }
+  }
+};
+
+function mapRange(v, inMin, inMax, outMin, outMax) {
+  return Math.max(outMin, Math.min(outMax, outMin + (v - inMin) / (inMax - inMin) * (outMax - outMin)));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DEMO DATA
+═══════════════════════════════════════════════════════════ */
+function generateDemoData() {
+  const repos = [
+    {id:'r1',name:'core-framework',stars:12400,language:'Python',updated_at:daysAgo(12),topics:['ml','framework'],html_url:'#'},
+    {id:'r2',name:'data-pipeline',stars:3200,language:'Python',updated_at:daysAgo(8),topics:['data'],html_url:'#'},
+    {id:'r3',name:'ui-components',stars:8100,language:'TypeScript',updated_at:daysAgo(220),topics:['ui'],html_url:'#'},
+    {id:'r4',name:'api-gateway',stars:5600,language:'Go',updated_at:daysAgo(45),topics:['api'],html_url:'#'},
+    {id:'r5',name:'model-registry',stars:1900,language:'Python',updated_at:daysAgo(190),topics:['ml'],html_url:'#'},
+    {id:'r6',name:'cli-tools',stars:2100,language:'Go',updated_at:daysAgo(30),topics:['cli'],html_url:'#'},
+    {id:'r7',name:'docs-site',stars:890,language:'JavaScript',updated_at:daysAgo(5),topics:['docs'],html_url:'#'},
+    {id:'r8',name:'integration-tests',stars:430,language:'Python',updated_at:daysAgo(380),topics:['testing'],html_url:'#'},
+    {id:'r9',name:'auth-module',stars:6700,language:'TypeScript',updated_at:daysAgo(22),topics:['auth','security'],html_url:'#'},
+    {id:'r10',name:'metrics-collector',stars:1100,language:'Go',updated_at:daysAgo(95),topics:['observability'],html_url:'#'},
+  ];
+
+  const contribs = [
+    {id:'c1',login:'alice',contributions:2140,repos:['r1','r2','r4','r9']},  // bridge, burnout risk
+    {id:'c2',login:'bob',contributions:890,repos:['r1','r3']},
+    {id:'c3',login:'carol',contributions:1560,repos:['r2','r5','r8','r10']}, // bridge
+    {id:'c4',login:'dave',contributions:310,repos:['r3']},                   // r3 single maintainer
+    {id:'c5',login:'eve',contributions:740,repos:['r4','r6','r9']},          // bridge
+    {id:'c6',login:'frank',contributions:180,repos:['r6']},
+    {id:'c7',login:'grace',contributions:920,repos:['r1','r7']},
+    {id:'c8',login:'henry',contributions:55,repos:['r8']},                   // r8 single maintainer
+    {id:'c9',login:'iris',contributions:430,repos:['r9','r5']},
+    {id:'c10',login:'jake',contributions:270,repos:['r2','r10']},
+  ];
+
+  const nodes = [], links = [], nodeMap = new Map();
+
+  // Repo nodes
+  repos.forEach(r => {
+    const daysOld = Math.round((Date.now() - new Date(r.updated_at)) / 864e5);
+    nodes.push({
+      id:`repo-${r.id}`, type:'repo', name:r.name,
+      stars:r.stars, language:r.language, topics:r.topics,
+      updated_at:r.updated_at, url:r.html_url,
+      days_since_update:daysOld, inactive:daysOld>180,
+      criticality:Math.min(r.stars/1000,10),
+      contributor_count:0, health_score:0,
+    });
+    nodeMap.set(`repo-${r.id}`, nodes.length-1);
+    if (r.language) {
+      const lid = `lang-${r.language}`;
+      if (!nodeMap.has(lid)) {
+        nodes.push({id:lid,type:'language',name:r.language,stars:0,days_since_update:0,inactive:false,criticality:0,health_score:50});
+        nodeMap.set(lid, nodes.length-1);
+      }
+      links.push({source:`repo-${r.id}`,target:lid,kind:'coded_in',weight:1});
+    }
+  });
+
+  // Contributor nodes
+  const repoContribCount = new Map();
+  contribs.forEach(c => {
+    const cid = `contrib-${c.id}`;
+    nodes.push({
+      id:cid, type:'contributor', name:c.login,
+      contributions:c.contributions, repo_count:c.repos.length,
+      bridge:c.repos.length >= 3, burnout_risk:c.contributions > 1000,
+      url:`https://github.com/${c.login}`,
+    });
+    nodeMap.set(cid, nodes.length-1);
+    c.repos.forEach(rid => {
+      links.push({source:cid,target:`repo-${rid}`,kind:'commits_to',weight:c.contributions});
+      repoContribCount.set(`repo-${rid}`, (repoContribCount.get(`repo-${rid}`)||0)+1);
+    });
+  });
+
+  // Apply risk signals to repos
+  nodes.forEach(n => {
+    if (n.type === 'repo') {
+      const cc = repoContribCount.get(n.id) || 0;
+      n.contributor_count = cc;
+      n.single_maintainer = cc <= 1;
+      n.risk = n.single_maintainer;
+      const freshness = Math.max(0, 1 - n.days_since_update / 365);
+      const communityFactor = Math.min(cc / 5, 1);
+      n.health_score = Math.round((freshness * 0.5 + communityFactor * 0.5) * 100);
+    }
+  });
+
+  return { nodes, links };
+}
+
+function daysAgo(n) {
+  return new Date(Date.now() - n * 864e5).toISOString();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GITHUB API
+═══════════════════════════════════════════════════════════ */
+function getAuthHeader() {
+  const token = document.getElementById('tokenInput').value.trim();
+  return token ? { 'Authorization': `token ${token}` } : {};
+}
+
+async function fetchWithAuth(url) {
+  const headers = { 'Accept': 'application/vnd.github.v3+json', ...getAuthHeader() };
+  const res = await fetch(url, { headers });
+  if (res.status === 403) {
+    const remaining = res.headers.get('X-RateLimit-Remaining');
+    if (remaining === '0') throw new Error('GitHub rate limit hit. Add a token for 5000 req/hr.');
+    throw new Error('Access forbidden — check token or repo visibility.');
+  }
+  if (res.status === 404) throw new Error('Not found. Check org/repo name.');
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function buildEcosystemData(query) {
+  try {
+    showLoading('Resolving target...');
+    let repos = [];
+
+    try {
+      const orgData = await fetchWithAuth(`https://api.github.com/orgs/${encodeURIComponent(query)}/repos?per_page=100&type=public`);
+      repos = orgData.filter(r => !r.fork);
+      if (repos.length === 0) throw new Error('empty org');
+    } catch {
+      try {
+        const searchData = await fetchWithAuth(`https://api.github.com/search/repositories?q=${encodeURIComponent(query)}&sort=stars&order=desc&per_page=40`);
+        repos = (searchData.items || []).slice(0, 40);
+      } catch (e2) {
+        throw new Error(e2.message || 'Could not fetch repos.');
+      }
+    }
+    if (repos.length === 0) throw new Error('No repositories found.');
+
+    showLoading(`Analyzing ${repos.length} repos...`);
+
+    const nodes = [], links = [], nodeMap = new Map();
+    const contribStats = new Map();
+    const repoContribCount = new Map();
+
+    repos.forEach(repo => {
+      const rid = `repo-${repo.id}`;
+      const daysOld = Math.round((Date.now() - new Date(repo.updated_at)) / 864e5);
+      nodes.push({
+        id:rid, type:'repo', name:repo.name,
+        stars:repo.stargazers_count, language:repo.language,
+        topics:repo.topics||[], url:repo.html_url,
+        updated_at:repo.updated_at, days_since_update:daysOld,
+        inactive:daysOld>180, criticality:Math.min(repo.stargazers_count/1000,10),
+        contributor_count:0, health_score:50, single_maintainer:false, risk:false,
+      });
+      nodeMap.set(rid, nodes.length-1);
+
+      if (repo.language) {
+        const lid = `lang-${repo.language}`;
+        if (!nodeMap.has(lid)) {
+          nodes.push({id:lid,type:'language',name:repo.language,stars:0,days_since_update:0,inactive:false,criticality:0,health_score:50});
+          nodeMap.set(lid, nodes.length-1);
+        }
+        links.push({source:rid,target:lid,kind:'coded_in',weight:1});
+      }
+    });
+
+    let fetched = 0;
+    for (const repo of repos) {
+      const rid = `repo-${repo.id}`;
+      try {
+        const cs = await fetchWithAuth(`https://api.github.com/repos/${repo.owner.login}/${repo.name}/contributors?per_page=50`);
+        fetched++;
+        if (fetched % 5 === 0) showLoading(`Contributors: ${fetched}/${repos.length} repos...`);
+
+        (cs || []).slice(0, 15).forEach(c => {
+          const cid = `contrib-${c.id}`;
+          if (!nodeMap.has(cid)) {
+            nodes.push({id:cid,type:'contributor',name:c.login,contributions:c.contributions,repo_count:0,bridge:false,burnout_risk:false,url:c.html_url});
+            nodeMap.set(cid, nodes.length-1);
+          }
+          const st = contribStats.get(cid) || {repos:0,total:0};
+          st.repos++; st.total += c.contributions;
+          contribStats.set(cid, st);
+          repoContribCount.set(rid, (repoContribCount.get(rid)||0)+1);
+          links.push({source:cid,target:rid,kind:'commits_to',weight:c.contributions});
+        });
+      } catch { /* skip repo */ }
+    }
+
+    // Finalize signals
+    nodes.forEach(n => {
+      if (n.type === 'repo') {
+        const cc = repoContribCount.get(n.id) || 0;
+        n.contributor_count = cc;
+        n.single_maintainer = cc <= 1;
+        n.risk = n.single_maintainer;
+        const freshness = Math.max(0, 1 - n.days_since_update / 365);
+        n.health_score = Math.round((freshness * 0.5 + Math.min(cc/5,1) * 0.5) * 100);
+      }
+      if (n.type === 'contributor') {
+        const st = contribStats.get(n.id) || {repos:0,total:0};
+        n.repo_count = st.repos;
+        n.bridge = st.repos >= 3;
+        n.burnout_risk = st.total > 500;
+      }
+    });
+
+    CURRENT_DATA = {nodes, links};
+    renderGraph();
+    updateStats();
+    hideLoading();
+    document.getElementById('legend').style.display = '';
+    toast(`✓ Loaded ${repos.length} repos, ${nodes.filter(n=>n.type==='contributor').length} contributors`, 'ok');
+
+  } catch (e) {
+    hideLoading();
+    toast(`✗ ${e.message}`, 'err');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GRAPH RENDERING
+═══════════════════════════════════════════════════════════ */
+function renderGraph() {
+  if (!CURRENT_DATA) return;
+  const ctr = document.querySelector('.center');
+  const W = ctr.clientWidth, H = ctr.clientHeight;
+  const scenario = SCENARIOS[CURRENT_SCENARIO];
+
+  const svgEl = d3.select('#viz');
+  svgEl.selectAll('*').remove();
+
+  const g = svgEl.append('g');
+  const zoom = d3.zoom().scaleExtent([.05, 4]).on('zoom', ev => g.attr('transform', ev.transform));
+  svgEl.call(zoom);
+
+  sim = d3.forceSimulation(CURRENT_DATA.nodes)
+    .force('link', d3.forceLink(CURRENT_DATA.links).id(d=>d.id)
+      .distance(+document.getElementById('linkDist').value)
+      .strength(.45))
+    .force('charge', d3.forceManyBody().strength(+document.getElementById('charge').value))
+    .force('center', d3.forceCenter(W/2, H/2))
+    .force('collide', d3.forceCollide(d => (scenario.nodeSize(d)||8) + 5).iterations(2));
+
+  linkSel = g.append('g').selectAll('line').data(CURRENT_DATA.links).join('line')
+    .attr('stroke', d => d.kind === 'coded_in' ? 'rgba(52,211,153,.1)' : 'rgba(240,160,48,.18)')
+    .attr('stroke-width', d => d.kind === 'commits_to' ? Math.min(Math.sqrt(d.weight||1)*.5, 2.5) : .7)
+    .attr('stroke-linecap', 'round');
+
+  nodeSel = g.append('g').selectAll('g').data(CURRENT_DATA.nodes).join('g')
+    .attr('class', 'g-node')
+    .call(d3.drag()
+      .on('start', ev => { if (!ev.active) sim.alphaTarget(.3).restart(); ev.subject.fx=ev.subject.x; ev.subject.fy=ev.subject.y; })
+      .on('drag', ev => { ev.subject.fx=ev.x; ev.subject.fy=ev.y; })
+      .on('end', ev => { if (!ev.active) sim.alphaTarget(0); ev.subject.fx=null; ev.subject.fy=null; })
+    );
+
+  // Pulse rings
+  nodeSel.each(function(d) {
+    const sel = d3.select(this);
+    const r = scenario.nodeSize(d);
+    if (d.risk) sel.append('circle').attr('r',r+9).attr('fill','none').attr('stroke','#f05050').attr('stroke-width',1.5).style('animation',`pulse-risk 1.8s ease-in-out infinite`).style('animation-delay',Math.random()*1.5+'s');
+    if (d.bridge) sel.append('circle').attr('r',r+7).attr('fill','none').attr('stroke','#f0c040').attr('stroke-width',1).style('animation',`pulse-bridge 2.5s ease-in-out infinite`).style('animation-delay',Math.random()*2+'s');
+    if (d.criticality > 5) sel.append('circle').attr('r',r+11).attr('fill','none').attr('stroke','#ffd97a').attr('stroke-width',.8).style('animation',`pulse-critical 2.2s ease-in-out infinite`).style('animation-delay',Math.random()*2+'s');
+  });
+
+  nodeSel.append('circle')
+    .attr('class','main-circle')
+    .attr('r', d => scenario.nodeSize(d))
+    .attr('fill', d => scenario.nodeColor(d))
+    .attr('fill-opacity', .88)
+    .attr('stroke', d => {
+      if (d.risk && d.inactive) return '#f02020';
+      if (d.risk) return '#f05050';
+      if (d.bridge) return '#f0c040';
+      if (d.criticality > 5) return '#ffd97a';
+      return scenario.nodeColor(d);
+    })
+    .attr('stroke-width', d => d.risk || d.bridge ? 2 : 1.2)
+    .attr('stroke-opacity', .9);
+
+  nodeSel.append('text')
+    .attr('dx', d => (scenario.nodeSize(d)||8) + 4)
+    .attr('dy', 3)
+    .text(d => d.name.length > 22 ? d.name.slice(0,20)+'…' : d.name);
+
+  // Tooltip
+  const tip = document.getElementById('tip');
+  nodeSel
+    .on('mousemove', (ev, d) => {
+      document.getElementById('tn').textContent = d.name;
+      const signals = [];
+      if (d.risk) signals.push('⚠ at risk');
+      if (d.bridge) signals.push('◈ bridge');
+      if (d.criticality > 5) signals.push('⭐ critical');
+      if (d.inactive) signals.push('⧖ stale');
+      if (d.burnout_risk) signals.push('🔥 burnout');
+      document.getElementById('tm').textContent = d.type + (signals.length ? '\n' + signals.join(' · ') : '');
+      tip.style.display = 'block';
+      tip.style.left = (ev.clientX + 14) + 'px';
+      tip.style.top = (ev.clientY - 12) + 'px';
+    })
+    .on('mouseleave', () => tip.style.display = 'none')
+    .on('click', (ev, d) => { ev.stopPropagation(); selectNode(d.id); });
+
+  svgEl.on('click', () => selectNode(null));
+
+  sim.on('tick', () => {
+    linkSel.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+    nodeSel.attr('transform', d=>`translate(${d.x},${d.y})`);
+  });
+}
+
+function refreshScenario() {
+  if (!CURRENT_DATA || !nodeSel) return;
+  const scenario = SCENARIOS[CURRENT_SCENARIO];
+
+  nodeSel.select('.main-circle')
+    .transition().duration(400)
+    .attr('r', d => scenario.nodeSize(d))
+    .attr('fill', d => scenario.nodeColor(d))
+    .attr('stroke', d => {
+      if (d.risk && d.inactive) return '#f02020';
+      if (d.risk) return '#f05050';
+      if (d.bridge) return '#f0c040';
+      if (d.criticality > 5) return '#ffd97a';
+      return scenario.nodeColor(d);
+    });
+
+  nodeSel.selectAll('text').attr('dx', d => (scenario.nodeSize(d)||8) + 4);
+
+  if (sim) sim.force('collide', d3.forceCollide(d => (scenario.nodeSize(d)||8) + 5).iterations(2)).alpha(.3).restart();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SELECTION & FILTERS
+═══════════════════════════════════════════════════════════ */
+function nodeById() { return new Map(CURRENT_DATA.nodes.map(n=>[n.id,n])); }
+
+function selectNode(id) {
+  selId = id;
+  if (!id) {
+    if (nodeSel) nodeSel.classed('dim',false).classed('focus',false);
+    if (linkSel) linkSel.style('display',null);
+    renderDetailDefault();
+    return;
+  }
+  const node = nodeById().get(id);
+  if (!node) return;
+
+  const nbSet = new Set([id]);
+  CURRENT_DATA.links.forEach(l => {
+    const s = l.source.id||l.source, t = l.target.id||l.target;
+    if (s===id) nbSet.add(t);
+    if (t===id) nbSet.add(s);
+  });
+
+  nodeSel.classed('dim', d=>!nbSet.has(d.id)).classed('focus', d=>nbSet.has(d.id));
+  linkSel.style('display', d => {
+    const s=d.source.id||d.source, t=d.target.id||d.target;
+    return s===id||t===id ? null : 'none';
+  });
+  renderDetail(node, nbSet);
+}
+
+function nodeVisible(d) {
+  if (riskOnly && d.type==='repo' && !d.risk) return false;
+  if (bridgeOnly && d.type==='contributor' && !d.bridge) return false;
+  if (criticalOnly && d.type==='repo' && (d.criticality||0)<=5) return false;
+  return true;
+}
+
+function applyFilters() {
+  if (!nodeSel) return;
+  const nb = nodeById();
+  nodeSel.style('display', d=>nodeVisible(d)?null:'none');
+  linkSel.style('display', d => {
+    const s=nb.get(d.source.id||d.source), t=nb.get(d.target.id||d.target);
+    return s&&t&&nodeVisible(s)&&nodeVisible(t) ? null : 'none';
+  });
+  if (selId) selectNode(selId);
+}
+
+function updateStats() {
+  if (!CURRENT_DATA) return;
+  const nb = nodeById();
+  document.getElementById('sN').textContent = CURRENT_DATA.nodes.length;
+  document.getElementById('sL').textContent = CURRENT_DATA.links.length;
+  document.getElementById('sR').textContent = CURRENT_DATA.nodes.filter(n=>n.risk).length;
+  document.getElementById('sB').textContent = CURRENT_DATA.nodes.filter(n=>n.bridge).length;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DETAIL PANEL
+═══════════════════════════════════════════════════════════ */
+function renderDetailDefault() {
+  document.getElementById('dName').textContent = 'Select a node';
+  document.getElementById('dSub').textContent = 'Click a repo or contributor to inspect.';
+  document.getElementById('dPane').innerHTML = `<div style="height:10px"></div><div class="hint-txt">
+    Choose a lens and analyze an org to get started.<br><br>
+    <strong>Try:</strong> microsoft, langchain-ai, huggingface, or hit "Load Demo Data" to explore without a token.
+  </div>`;
+}
+
+function renderDetail(n, nbSet) {
+  document.getElementById('dName').textContent = n.name;
+  const sigs = [];
+  if (n.risk) sigs.push('⚠ at risk');
+  if (n.bridge) sigs.push('◈ bridge');
+  if (n.criticality>5) sigs.push('⭐ critical');
+  if (n.inactive) sigs.push('⧖ stale');
+  if (n.burnout_risk) sigs.push('🔥 burnout');
+  document.getElementById('dSub').textContent = n.type + (sigs.length ? ' · ' + sigs.join(' · ') : '');
+
+  const nbs = [...nbSet].filter(id=>id!==n.id).map(id=>nodeById().get(id)).filter(Boolean).slice(0,12);
+
+  let html = `<div class="d-hero">
+    <div class="d-typelbl" style="color:${n.type==='repo'?'#4d8ef0':n.type==='contributor'?'#f0a030':'#34d399'}">${esc(n.type)}</div>
+    <div class="d-name">${esc(n.name)}</div>
+    <div class="badges">
+      ${n.risk ? `<span class="badge" style="border-color:rgba(240,80,80,.35);color:#f05050"><span class="bd" style="background:#f05050"></span>at risk</span>`:''}
+      ${n.bridge ? `<span class="badge" style="border-color:rgba(240,192,64,.35);color:#f0c040"><span class="bd" style="background:#f0c040"></span>bridge</span>`:''}
+      ${n.criticality>5 ? `<span class="badge" style="border-color:rgba(255,217,122,.35);color:#ffd97a"><span class="bd" style="background:#ffd97a"></span>critical</span>`:''}
+      ${n.inactive ? `<span class="badge" style="border-color:rgba(100,100,180,.35);color:#7070b0"><span class="bd" style="background:#6060a0"></span>stale</span>`:''}
+      ${n.burnout_risk ? `<span class="badge" style="border-color:rgba(240,80,80,.35);color:#f08060">🔥 burnout risk</span>`:''}
+    </div>
+  </div>`;
+
+  if (n.type === 'repo') {
+    const healthColor = n.health_score > 70 ? '#4dd68c' : n.health_score > 40 ? '#f0c040' : '#f05050';
+    const healthClass = n.health_score > 70 ? 'good' : n.health_score > 40 ? 'warn' : 'bad';
+    html += `<div class="kv">
+      <div class="kk">language</div><div class="vv">${esc(n.language||'—')}</div>
+      <div class="kk">stars</div><div class="vv">${n.stars.toLocaleString()}</div>
+      <div class="kk">last push</div><div class="vv ${n.inactive?'bad':'good'}">${n.days_since_update}d ago${n.inactive?' ⧖':''}</div>
+      <div class="kk">maintainers</div><div class="vv ${n.single_maintainer?'bad':'good'}">${n.contributor_count} ${n.single_maintainer?'— ⚠ single':''}</div>
+      <div class="kk">health</div>
+      <div class="vv">
+        <span class="${healthClass}">${n.health_score}%</span>
+        <div class="health-bar-wrap"><div class="health-bar-bg"><div class="health-bar-fg" style="--w:${n.health_score}%;background:${healthColor}"></div></div></div>
+      </div>
+    </div>`;
+    html += `<div class="d-sec"><h3>Maintenance Assessment</h3><p>
+      ${n.single_maintainer ? '<strong style="color:#f05050">⚠ Single maintainer.</strong> If this person burns out or leaves, this repo has no backup. High bus factor risk.' 
+        : `<strong style="color:#4dd68c">✓ ${n.contributor_count} active contributors.</strong> Reasonable bus factor. Unlikely to go dark suddenly.`}
+      ${n.inactive ? ' <strong style="color:#7070b0">Not updated in '+n.days_since_update+' days</strong> — likely abandoned or very stable.' : ''}
+    </p></div>`;
+    if (n.url && n.url !== '#') html += `<div class="d-sec"><h3>Actions</h3><p><a href="${n.url}" target="_blank" style="color:#4d8ef0;text-decoration:none;font-family:'JetBrains Mono',monospace;font-size:10px">↗ Open on GitHub</a></p></div>`;
+  } else if (n.type === 'contributor') {
+    html += `<div class="kv">
+      <div class="kk">commits</div><div class="vv">${(n.contributions||0).toLocaleString()}</div>
+      <div class="kk">repos</div><div class="vv">${n.repo_count}</div>
+      <div class="kk">bridge</div><div class="vv ${n.bridge?'warn':''}">${n.bridge?'◈ yes — spans systems':'No'}</div>
+      <div class="kk">burnout</div><div class="vv ${n.burnout_risk?'bad':'good'}">${n.burnout_risk?'⚠ risk':'Low risk'}</div>
+    </div>`;
+    html += `<div class="d-sec"><h3>Role Analysis</h3><p>
+      ${n.bridge ? `<strong style="color:#f0c040">◈ Bridge engineer.</strong> This person works across ${n.repo_count} repos — they're a critical knowledge connector. Their departure would fragment the ecosystem.` 
+        : `Specialist contributor. Focused in one area — lower systemic risk if they leave, but could still leave gaps.`}
+      ${n.burnout_risk ? ' <strong style="color:#f08060">🔥 High contribution volume</strong> — monitor for burnout signals.' : ''}
+    </p></div>`;
+  } else if (n.type === 'language') {
+    html += `<div class="d-sec"><h3>Language Cluster</h3><p>Repos using ${esc(n.name)}. Language clusters reveal technology concentration and portability risk.</p></div>`;
+  }
+
+  if (nbs.length > 0) {
+    html += `<div class="d-sec"><h3>Connections (${nbs.length})</h3><div class="conn-list">`;
+    nbs.forEach(m => {
+      const msigs = [m.risk?'⚠':'', m.bridge?'◈':'', m.inactive?'⧖':''].filter(Boolean).join('');
+      html += `<div class="conn" data-j="${esc(m.id)}">
+        <div class="cn">${esc(m.name)}</div>
+        <div class="cm">${esc(m.type)} <span class="conn-signal">${msigs}</span></div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  const dPane = document.getElementById('dPane');
+  dPane.innerHTML = html;
+  dPane.querySelectorAll('[data-j]').forEach(el => el.addEventListener('click', () => selectNode(el.dataset.j)));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   UI HELPERS
+═══════════════════════════════════════════════════════════ */
+function showLoading(msg = 'Loading...') {
+  let el = document.getElementById('loader');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'loader';
+    el.className = 'loading-state';
+    document.querySelector('.center').appendChild(el);
+  }
+  el.innerHTML = `<div class="spinner"></div><div class="msg">${esc(msg)}</div>`;
+}
+function hideLoading() {
+  const el = document.getElementById('loader');
+  if (el) el.remove();
+}
+
+let _toastTimer = null;
+function toast(msg, type='info') {
+  const existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.className = `toast ${type} entering`;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => {
+    el.classList.remove('entering');
+    el.classList.add('leaving');
+    setTimeout(() => el.remove(), 280);
+  }, 3500);
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function setHudText(txt) {
+  document.getElementById('hudTxt').textContent = txt;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   EVENT WIRING
+═══════════════════════════════════════════════════════════ */
+document.getElementById('scenarioSelect').addEventListener('change', ev => {
+  CURRENT_SCENARIO = ev.target.value;
+  const s = SCENARIOS[CURRENT_SCENARIO];
+  document.getElementById('headerSub').textContent = s.subtitle;
+  document.getElementById('scenarioHelp').textContent = s.help;
+  refreshScenario();
+});
+
+document.getElementById('searchBtn').addEventListener('click', () => {
+  const q = document.getElementById('queryInput').value.trim();
+  if (q) buildEcosystemData(q);
+  else toast('Enter an org or repo name first.', 'warn');
+});
+
+document.getElementById('queryInput').addEventListener('keypress', ev => {
+  if (ev.key==='Enter') document.getElementById('searchBtn').click();
+});
+
+document.getElementById('btnRisk').addEventListener('click', function() {
+  riskOnly = !riskOnly;
+  this.classList.toggle('on', riskOnly);
+  if (riskOnly) { bridgeOnly=false; criticalOnly=false; document.getElementById('btnBridge').classList.remove('on'); document.getElementById('btnCritical').classList.remove('on'); }
+  applyFilters();
+  setHudText(riskOnly ? 'showing at-risk repos' : 'drag · scroll · click');
+});
+
+document.getElementById('btnBridge').addEventListener('click', function() {
+  bridgeOnly = !bridgeOnly;
+  this.classList.toggle('on', bridgeOnly);
+  if (bridgeOnly) { riskOnly=false; document.getElementById('btnRisk').classList.remove('on'); }
+  applyFilters();
+  setHudText(bridgeOnly ? 'showing bridge engineers' : 'drag · scroll · click');
+});
+
+document.getElementById('btnCritical').addEventListener('click', function() {
+  criticalOnly = !criticalOnly;
+  this.classList.toggle('on', criticalOnly);
+  if (criticalOnly) { riskOnly=false; document.getElementById('btnRisk').classList.remove('on'); }
+  applyFilters();
+  setHudText(criticalOnly ? 'showing critical repos only' : 'drag · scroll · click');
+});
+
+document.getElementById('btnDemo').addEventListener('click', () => {
+  CURRENT_DATA = generateDemoData();
+  renderGraph();
+  updateStats();
+  document.getElementById('legend').style.display = '';
+  document.getElementById('queryInput').value = 'demo-org';
+  toast('Demo ecosystem loaded. Click any node to explore.', 'ok');
+});
+
+document.getElementById('btnReset').addEventListener('click', () => {
+  riskOnly = bridgeOnly = criticalOnly = false;
+  ['btnRisk','btnBridge','btnCritical'].forEach(id => document.getElementById(id).classList.remove('on'));
+  selectNode(null);
+  applyFilters();
+  setHudText('drag · scroll · click');
+  d3.select('#viz').transition().duration(400).call(d3.zoom().transform, d3.zoomIdentity);
+});
+
+document.getElementById('charge').addEventListener('input', e => {
+  document.getElementById('cV').textContent = e.target.value;
+  if (sim) sim.force('charge').strength(+e.target.value).alpha(.4).restart();
+});
+
+document.getElementById('linkDist').addEventListener('input', e => {
+  document.getElementById('dV').textContent = e.target.value;
+  if (sim) sim.force('link').distance(+e.target.value).alpha(.4).restart();
+});
+
+// Boot
+document.getElementById('scenarioSelect').dispatchEvent(new Event('change'));
+renderDetailDefault();
+</script>
+<footer style="position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:rgba(8,6,16,.9);border-top:1px solid rgba(110,79,132,.12);
+  backdrop-filter:blur(12px);padding:7px 28px;
+  display:flex;align-items:center;justify-content:center;">
+  <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.4px;color:#584870">
+    GitHub Atlas · Interactive maps for GitHub's ecosystem ·
+    <a href="https://github.com/blackmath88" style="color:#9d84b8;text-decoration:none">@blackmath88</a> ·
+    <a href="https://github.com/blackmath88/github-atlas/blob/main/LICENSE" style="color:#9d84b8;text-decoration:none">MIT licensed</a> ·
+    Client-side only
+  </span>
+</footer>
+
+</body>
+</html>
