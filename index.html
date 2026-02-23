@@ -547,8 +547,8 @@ footer{
       GitHub Atlas
     </a>
     <div class="nav-links">
-      <a href="navigator.html" class="nav-link">Navigator</a>
-      <a href="launchpad.html" class="nav-link">Launchpad</a>
+      <a href="navigator.html" class="nav-link">Radarr</a>
+      <a href="launchpad.html" class="nav-link">Navigator</a>
       <a href="repo-hub.html" class="nav-link">Hub</a>
       <a href="https://github.com/blackmath88/github-atlas" target="_blank" class="nav-link gh">⭐ GitHub</a>
     </div>
@@ -571,9 +571,9 @@ footer{
     Discover the right libraries. Showcase your org to your community.
   </p>
   <div class="hero-tools">
-    <a href="navigator.html" class="tool-pill nav">🔍 Analyze risk →</a>
-    <a href="launchpad.html" class="tool-pill launch">🚀 Discover tools →</a>
-    <a href="repo-hub.html" class="tool-pill hub">🏢 Map your org →</a>
+    <a href="navigator.html" class="tool-pill nav">⚡ Analyze risk → Radarr</a>
+    <a href="launchpad.html" class="tool-pill launch">🗺️ Discover GitHub → Navigator</a>
+    <a href="repo-hub.html" class="tool-pill hub">🏢 Map your org → Hub</a>
   </div>
 </section>
 
@@ -587,12 +587,12 @@ footer{
   <div class="heads">
 
     <div class="head navigator">
-      <div class="head-num">Head 01 · navigator</div>
-      <span class="head-icon">🔍</span>
-      <div class="head-title">Navigator</div>
-      <div class="head-sub">Risk &amp; ecosystem health analysis</div>
+      <div class="head-num">Head 01 · radarr</div>
+      <span class="head-icon">⚡</span>
+      <div class="head-title">Radarr</div>
+      <div class="head-sub">Ecosystem risk &amp; sustainability analysis</div>
       <p class="head-desc">
-        You're not just exploring — you're <em>betting</em> on this ecosystem. Navigator shows you the real structure: who holds it together, what could break, whether it's sustainable.
+        You're not just exploring — you're <em>betting</em> on this ecosystem. Radarr shows you the real structure: who holds it together, what could break, whether it's sustainable.
       </p>
       <div class="signals">
         <div class="sig-lbl">what you see</div>
@@ -602,27 +602,27 @@ footer{
         <div class="sig"><span class="sig-arrow">→</span>Health scoring · sustainability indicators</div>
       </div>
       <a href="navigator.html" class="head-btn">
-        <span>Launch Navigator</span><span class="arr">→</span>
+        <span>Launch Radarr</span><span class="arr">→</span>
       </a>
     </div>
 
     <div class="head launchpad">
-      <div class="head-num">Head 02 · launchpad</div>
-      <span class="head-icon">🚀</span>
-      <div class="head-title">Launchpad</div>
-      <div class="head-sub">Find the right LLM tool in 30 seconds</div>
+      <div class="head-num">Head 02 · navigator</div>
+      <span class="head-icon">🗺️</span>
+      <div class="head-title">Navigator</div>
+      <div class="head-sub">Intent-first discovery for GitHub's 420M repos</div>
       <p class="head-desc">
-        GitHub's 420M repositories weren't designed for the new wave of AI-curious users. Launchpad is the map that should have existed — curated, intent-first, persona-aware.
+        GitHub wasn't designed for the new wave of AI-curious users. Navigator is the map that should have existed — search any topic and get an interactive graph. Drill inside any repo to explore its structure.
       </p>
       <div class="signals">
         <div class="sig-lbl">what you see</div>
-        <div class="sig"><span class="sig-arrow">→</span>20 curated prompt &amp; LLM repos — hand-picked</div>
-        <div class="sig"><span class="sig-arrow">→</span>4 personas · Explorer, Builder, Prompter, Org Lead</div>
-        <div class="sig"><span class="sig-arrow">→</span>10 intent clusters · Frameworks, RAG, Agents, Production…</div>
-        <div class="sig"><span class="sig-arrow">→</span>🌲 Dark Forest — hides leaked system prompts by default</div>
+        <div class="sig"><span class="sig-arrow">→</span>Live GitHub API search — any topic as a force graph</div>
+        <div class="sig"><span class="sig-arrow">→</span>28 curated AI/LLM repos as a default landing map</div>
+        <div class="sig"><span class="sig-arrow">→</span>4 personas · 10 intent clusters · drill inside any repo</div>
+        <div class="sig"><span class="sig-arrow">→</span>🌲 Dark Forest — hides sensitive/leaked repos by default</div>
       </div>
       <a href="launchpad.html" class="head-btn">
-        <span>Launch Launchpad</span><span class="arr">→</span>
+        <span>Launch Navigator</span><span class="arr">→</span>
       </a>
     </div>
 
@@ -701,14 +701,87 @@ footer{
   </div>
 </section>
 
+<!-- ─── CONTRIBUTE ─── -->
+<section style="padding:60px 0 0" id="contribute">
+  <div class="s-eye">Open architecture</div>
+  <h2 class="s-title" style="margin-bottom:16px">Curated maps, by anyone</h2>
+  <p style="font-size:.97em;color:var(--txt-d);max-width:600px;margin-bottom:44px;line-height:1.82">
+    Navigator's L2 drill-down is designed to be extended. Any GitHub repo can become an interactive explorable map — drop a JSON config in <code style="font-family:'JetBrains Mono',monospace;font-size:.88em;color:var(--lavender);background:rgba(110,79,132,.12);padding:2px 7px;border-radius:3px">/curated/</code> and open a PR.
+  </p>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px">
+
+    <div style="
+      padding:28px 26px;
+      background:rgba(14,10,22,.7);border:1px solid var(--bd);border-radius:10px;
+      transition:all .22s;position:relative;
+    " onmouseover="this.style.borderColor='rgba(110,79,132,.35)';this.style.transform='translateX(4px)'"
+       onmouseout="this.style.borderColor='var(--bd)';this.style.transform='none'">
+      <div style="font-size:1.4em;margin-bottom:12px">📦</div>
+      <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.1em;font-weight:700;letter-spacing:-.02em;color:var(--near-white);margin-bottom:8px">Drop a JSON config</h3>
+      <p style="font-size:.88em;color:var(--txt-d);line-height:1.78">Create a file in <code style="font-family:'JetBrains Mono',monospace;font-size:.9em;color:var(--lav-dim)">/curated/</code> defining your clusters and items. Navigator loads it automatically when users drill into that repo.</p>
+    </div>
+
+    <div style="
+      padding:28px 26px;
+      background:rgba(14,10,22,.7);border:1px solid var(--bd);border-radius:10px;
+      transition:all .22s;position:relative;
+    " onmouseover="this.style.borderColor='rgba(77,128,127,.35)';this.style.transform='translateX(4px)'"
+       onmouseout="this.style.borderColor='var(--bd)';this.style.transform='none'">
+      <div style="font-size:1.4em;margin-bottom:12px">🤖</div>
+      <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.1em;font-weight:700;letter-spacing:-.02em;color:var(--near-white);margin-bottom:8px">AI-assisted curation</h3>
+      <p style="font-size:.88em;color:var(--txt-d);line-height:1.78">Use the LLM workflow in <code style="font-family:'JetBrains Mono',monospace;font-size:.9em;color:var(--lav-dim)">CONTRIBUTING.md</code> to generate a config from any README in minutes. The hard work is reading — the JSON is boilerplate.</p>
+    </div>
+
+    <div style="
+      padding:28px 26px;
+      background:rgba(14,10,22,.7);border:1px solid var(--bd);border-radius:10px;
+      transition:all .22s;position:relative;
+    " onmouseover="this.style.borderColor='rgba(202,177,223,.25)';this.style.transform='translateX(4px)'"
+       onmouseout="this.style.borderColor='var(--bd)';this.style.transform='none'">
+      <div style="font-size:1.4em;margin-bottom:12px">🔍</div>
+      <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.1em;font-weight:700;letter-spacing:-.02em;color:var(--near-white);margin-bottom:8px">Instant discovery</h3>
+      <p style="font-size:.88em;color:var(--txt-d);line-height:1.78">Contributed maps show a <span style="color:#4d807f">teal dot</span> badge on the graph node. Users can drill inside to explore the repo's structure as a navigable category map with keyword filtering.</p>
+    </div>
+
+  </div>
+
+  <div style="
+    padding:20px 28px;
+    background:linear-gradient(135deg,rgba(77,128,127,.1),rgba(110,79,132,.08));
+    border:1px solid rgba(77,128,127,.25);border-radius:10px;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
+  ">
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#4d807f;margin-bottom:6px">Schema</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#584870;line-height:2">
+        <span style="color:#4d807f">{</span>&nbsp;
+        <span style="color:#cab1df">"label"</span>: <span style="color:#e0a060">"org/repo"</span>,&nbsp;
+        <span style="color:#cab1df">"description"</span>: <span style="color:#e0a060">"..."</span>,&nbsp;
+        <span style="color:#cab1df">"clusters"</span>: <span style="color:#4d807f">[{id, label, color, keywords}]</span>,&nbsp;
+        <span style="color:#cab1df">"items"</span>: <span style="color:#4d807f">[{name, prompt?, clusterId}]</span>&nbsp;
+        <span style="color:#4d807f">}</span>
+      </div>
+    </div>
+    <a href="https://github.com/blackmath88/github-atlas/blob/main/CONTRIBUTING.md" target="_blank" style="
+      padding:10px 20px;border:1px solid rgba(77,128,127,.5);border-radius:6px;
+      background:rgba(77,128,127,.14);color:#6aa8a7;
+      font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.4px;
+      text-decoration:none;white-space:nowrap;transition:all .2s
+    " onmouseover="this.style.background='rgba(77,128,127,.28)'" onmouseout="this.style.background='rgba(77,128,127,.14)'">
+      ↗ CONTRIBUTING.md
+    </a>
+  </div>
+</section>
+
 <!-- ─── FINAL CTA ─── -->
 <section class="cta-section" id="start">
   <h2>Pick a head.<br/>Start now.</h2>
   <p>No signup. No waiting. Each tool opens instantly with demo data already loaded.</p>
   <div class="cta-row">
-    <a href="navigator.html" class="tool-pill nav" style="padding:14px 28px">🔍 Analyze risk →</a>
-    <a href="launchpad.html" class="tool-pill launch" style="padding:14px 28px">🚀 Discover tools →</a>
-    <a href="repo-hub.html" class="tool-pill hub" style="padding:14px 28px">🏢 Map your org →</a>
+    <a href="navigator.html" class="tool-pill nav" style="padding:14px 28px">⚡ Radarr — Analyze risk →</a>
+    <a href="launchpad.html" class="tool-pill launch" style="padding:14px 28px">🗺️ Navigator — Discover GitHub →</a>
+    <a href="repo-hub.html" class="tool-pill hub" style="padding:14px 28px">🏢 Hub — Map your org →</a>
   </div>
   <a href="https://github.com/blackmath88/github-atlas" target="_blank" class="cta-gh">
     ⭐ star on github · blackmath88/github-atlas
@@ -726,8 +799,8 @@ footer{
         GitHub Atlas
       </div>
       <div class="foot-links">
-        <a href="navigator.html" class="foot-link">Navigator</a>
-        <a href="launchpad.html" class="foot-link">Launchpad</a>
+        <a href="navigator.html" class="foot-link">Radarr</a>
+        <a href="launchpad.html" class="foot-link">Navigator</a>
         <a href="repo-hub.html" class="foot-link">Hub</a>
         <a href="https://github.com/blackmath88/github-atlas" target="_blank" class="foot-link">GitHub</a>
         <a href="https://github.com/blackmath88/github-atlas/blob/main/CONTRIBUTING.md" target="_blank" class="foot-link">Contribute</a>
