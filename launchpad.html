@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>GitHub Atlas — Launchpad</title>
-<meta name="description" content="Find the right AI/LLM tool in 30 seconds. Curated GitHub repositories by persona and intent."/>
-<meta property="og:title" content="GitHub Atlas — Launchpad"/>
-<meta property="og:description" content="Interactive maps for GitHub's ecosystem. Analyze risk. Discover libraries. Showcase your org."/>
+<title>GitHub Atlas — Navigator</title>
+<meta name="description" content="Find the right AI/LLM tool in 30 seconds. Search any GitHub topic or browse the curated AI/LLM map."/>
+<meta property="og:title" content="GitHub Atlas — Navigator"/>
+<meta property="og:description" content="Intent-first navigation for GitHub's 420M repositories. Search any topic — rendered as an interactive map."/>
 <meta property="og:image" content="https://github.com/blackmath88/github-atlas/raw/main/preview.png"/>
 <meta property="og:url" content="https://blackmath88.github.io/github-atlas/launchpad.html"/>
 <meta property="og:type" content="website"/>
@@ -533,8 +533,8 @@ input[type=range]::-webkit-slider-thumb{
       GitHub Atlas
     </a>
     <div class="nav-links">
-      <a href="navigator.html" class="nav-link">Navigator</a>
-      <a href="launchpad.html" class="nav-link active">Launchpad</a>
+      <a href="navigator.html" class="nav-link">Radarr</a>
+      <a href="launchpad.html" class="nav-link active">Navigator</a>
       <a href="repo-hub.html" class="nav-link">Hub</a>
       <a href="https://github.com/blackmath88/github-atlas" target="_blank" class="nav-link gh">⭐ GitHub</a>
     </div>
@@ -551,7 +551,7 @@ input[type=range]::-webkit-slider-thumb{
 ══════════════════ -->
 <div class="panel">
   <div class="p-hdr">
-    <div class="eyebrow">github atlas · launchpad</div>
+    <div class="eyebrow">github atlas · navigator</div>
     <h1>Explore &amp; Get Started</h1>
     <div class="sub" id="headerSub">Find the right tool. Start in 30 seconds.</div>
   </div>
@@ -619,6 +619,34 @@ input[type=range]::-webkit-slider-thumb{
       <div class="trust-row"><div class="trust-dot" style="background:#a060c0"></div>Sensitive — leaked / system prompts</div>
     </div>
 
+    <div class="lbl" style="margin-top:20px">contribute a map</div>
+    <div style="
+      padding:12px 14px;
+      background:linear-gradient(160deg,rgba(77,128,127,.08),rgba(110,79,132,.06));
+      border:1px solid rgba(77,128,127,.25);border-radius:10px;
+      margin-bottom:14px;
+    ">
+      <div style="font-size:11px;color:#9d84b8;line-height:1.7;margin-bottom:10px">
+        <strong style="color:#6aa8a7">Anyone can add a curated map.</strong><br>
+        Drop a JSON file in <code style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#cab1df;background:rgba(110,79,132,.15);padding:1px 5px;border-radius:3px">/curated/</code> and open a PR. Navigator picks it up automatically.
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#584870;margin-bottom:8px;line-height:1.9">
+        <span style="color:#4d807f">{</span><br>
+        &nbsp;&nbsp;<span style="color:#cab1df">"label"</span>: <span style="color:#e0a060">"org/repo"</span>,<br>
+        &nbsp;&nbsp;<span style="color:#cab1df">"clusters"</span>: [...],<br>
+        &nbsp;&nbsp;<span style="color:#cab1df">"items"</span>: [...]<br>
+        <span style="color:#4d807f">}</span>
+      </div>
+      <a href="https://github.com/blackmath88/github-atlas/blob/main/CONTRIBUTING.md" target="_blank" style="
+        display:block;padding:7px 10px;border:1px solid rgba(77,128,127,.35);border-radius:6px;
+        background:rgba(77,128,127,.1);color:#4d807f;font-size:10px;font-weight:700;
+        text-decoration:none;text-align:center;font-family:'JetBrains Mono',monospace;
+        transition:all .15s;letter-spacing:.03em
+      " onmouseover="this.style.background='rgba(77,128,127,.22)'" onmouseout="this.style.background='rgba(77,128,127,.1)'">
+        ↗ Contribution guide
+      </a>
+    </div>
+
   </div>
 </div>
 
@@ -674,7 +702,7 @@ const REPOS = [
   {id:'r12',name:'promptslab/Awesome-Prompt-Engineering',stars:3900,desc:'Curated resources, papers, and techniques for prompt engineering.',url:'https://github.com/promptslab/Awesome-Prompt-Engineering',trust:'community',clusters:['prompt-engineering','prompt-collections'],language:'Markdown',personas:['prompter']},
   // RAG / data
   {id:'r13',name:'chroma-core/chroma',stars:15000,desc:'The open-source embedding database. Essential for RAG pipelines.',url:'https://github.com/chroma-core/chroma',trust:'community',clusters:['rag','production'],language:'Python',personas:['builder']},
-  {id:'r14',name:'qdrant/qdrant',stars:21000,desc:'High-performance vector search engine. Production-grade alternative to Chroma for serious RAG deployments.',url:'https://github.com/qdrant/qdrant',trust:'community',clusters:['rag','production'],language:'Rust',personas:['builder','org']},
+  {id:'r14',name:'jerryjliu/llama_index',stars:36000,desc:'Data framework for LLM applications — search, summarize, chat with your docs.',url:'https://github.com/run-llama/llama_index',trust:'community',clusters:['rag','frameworks'],language:'Python',personas:['builder','org']},
   // Agents
   {id:'r15',name:'Significant-Gravitas/AutoGPT',stars:168000,desc:'The original autonomous AI agent. Loops, plans, executes tasks end-to-end.',url:'https://github.com/Significant-Gravitas/AutoGPT',trust:'community',clusters:['agents','getting-started'],language:'Python',personas:['explorer','builder']},
   {id:'r16',name:'geekan/MetaGPT',stars:44000,desc:'Multi-agent software company in Python. Roles: CEO, CTO, developer agents.',url:'https://github.com/geekan/MetaGPT',trust:'community',clusters:['agents','workflow'],language:'Python',personas:['builder','org']},
@@ -684,19 +712,6 @@ const REPOS = [
   // Tools / production
   {id:'r19',name:'BerriAI/litellm',stars:13000,desc:'Call any LLM using OpenAI format. One interface for 100+ models.',url:'https://github.com/BerriAI/litellm',trust:'community',clusters:['production','api-usage'],language:'Python',personas:['builder','org']},
   {id:'r20',name:'ggerganov/llama.cpp',stars:66000,desc:'Run LLMs locally in C++. The engine behind local AI.',url:'https://github.com/ggerganov/llama.cpp',trust:'community',clusters:['models','production'],language:'C++',personas:['builder']},
-  // Local / self-hosted
-  {id:'r21',name:'ollama/ollama',stars:90000,desc:'Run Llama, Mistral, Gemma and more locally. The easiest on-ramp to local AI.',url:'https://github.com/ollama/ollama',trust:'community',clusters:['models','getting-started'],language:'Go',personas:['explorer','builder']},
-  {id:'r22',name:'open-webui/open-webui',stars:50000,desc:'Beautiful ChatGPT-style UI for local models via Ollama or OpenAI API. Zero coding required.',url:'https://github.com/open-webui/open-webui',trust:'community',clusters:['getting-started','models'],language:'Svelte',personas:['explorer']},
-  // Agents (modern)
-  {id:'r23',name:'crewAIInc/crewAI',stars:30000,desc:'Orchestrate role-playing AI agents as a crew. The hot multi-agent framework of 2024–25.',url:'https://github.com/crewAIInc/crewAI',trust:'community',clusters:['agents','workflow'],language:'Python',personas:['builder','org']},
-  {id:'r24',name:'microsoft/semantic-kernel',stars:22000,desc:'Microsoft\'s enterprise agent SDK. Integrates with Azure, Office, and M365 ecosystems.',url:'https://github.com/microsoft/semantic-kernel',trust:'official',clusters:['agents','production'],language:'C#',personas:['builder','org']},
-  // RAG / data (extended)
-  {id:'r25',name:'pgvector/pgvector',stars:14000,desc:'Vector similarity search inside PostgreSQL. No new infra — extend your existing database.',url:'https://github.com/pgvector/pgvector',trust:'community',clusters:['rag','production'],language:'C',personas:['org','builder']},
-  // Getting started
-  {id:'r26',name:'microsoft/generative-ai-for-beginners',stars:67000,desc:'18-lesson course by Microsoft covering all GenAI fundamentals. Best structured starting point.',url:'https://github.com/microsoft/generative-ai-for-beginners',trust:'official',clusters:['getting-started'],language:'Jupyter',personas:['explorer']},
-  // Evaluation
-  {id:'r27',name:'confident-ai/deepeval',stars:6000,desc:'LLM evaluation framework. Test hallucinations, relevance, toxicity — like pytest for your AI app.',url:'https://github.com/confident-ai/deepeval',trust:'community',clusters:['evaluation','production'],language:'Python',personas:['builder','org']},
-  {id:'r28',name:'explodinggradients/ragas',stars:7000,desc:'Evaluation framework specifically for RAG pipelines. Measures faithfulness, relevance, precision.',url:'https://github.com/explodinggradients/ragas',trust:'community',clusters:['evaluation','rag'],language:'Python',personas:['builder','org']},
 ];
 
 const CLUSTERS = [
@@ -710,15 +725,14 @@ const CLUSTERS = [
   {id:'api-usage', label:'🔌 API Usage', color:'#c08040'},
   {id:'production', label:'🚢 Production', color:'#905030'},
   {id:'models', label:'🧠 Models', color:'#d09040'},
-  {id:'evaluation', label:'🧪 Evaluation', color:'#6080c0'},
 ];
 
 const TRUST_COLORS = {official:'#f0a830', community:'#60c060', sensitive:'#a060c0'};
 const PERSONA_CLUSTERS = {
   explorer:['getting-started','prompt-collections','agents','models'],
-  builder:['frameworks','api-usage','rag','production','agents','evaluation'],
+  builder:['frameworks','api-usage','rag','production','agents'],
   prompter:['prompt-engineering','prompt-collections','getting-started'],
-  org:['frameworks','production','workflow','agents','evaluation'],
+  org:['frameworks','production','workflow','agents'],
 };
 
 /* ═══════════════════════════════════════════════════════
@@ -1148,7 +1162,7 @@ document.querySelectorAll('.cluster-chip').forEach(ch => {
   backdrop-filter:blur(12px);padding:7px 28px;
   display:flex;align-items:center;justify-content:center;">
   <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.4px;color:#584870">
-    GitHub Atlas · Interactive maps for GitHub's ecosystem ·
+    GitHub Atlas · Navigator — intent-first discovery for GitHub ·
     <a href="https://github.com/blackmath88" style="color:#9d84b8;text-decoration:none">@blackmath88</a> ·
     <a href="https://github.com/blackmath88/github-atlas/blob/main/LICENSE" style="color:#9d84b8;text-decoration:none">MIT licensed</a> ·
     Client-side only
