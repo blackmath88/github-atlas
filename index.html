@@ -3,22 +3,18 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>GitHub Atlas — Navigator</title>
-<meta name="description" content="Find the right AI/LLM tool in 30 seconds. Search any GitHub topic or browse the curated AI/LLM map."/>
-<meta property="og:title" content="GitHub Atlas — Navigator"/>
-<meta property="og:description" content="Intent-first navigation for GitHub's 420M repositories. Search any topic — rendered as an interactive map."/>
+<title>GitHub Atlas — Navigate What You Build</title>
+<meta name="description" content="Three tools. Navigate GitHub's ecosystem. Analyze risk. Discover libraries. Showcase your org."/>
+<meta property="og:title" content="GitHub Atlas — Navigate What You Build"/>
+<meta property="og:description" content="Interactive maps for GitHub's ecosystem. Analyze risk. Discover libraries. Showcase your org."/>
 <meta property="og:image" content="https://github.com/blackmath88/github-atlas/raw/main/preview.png"/>
-<meta property="og:url" content="https://blackmath88.github.io/github-atlas/launchpad.html"/>
+<meta property="og:url" content="https://blackmath88.github.io/github-atlas/"/>
 <meta property="og:type" content="website"/>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 10 L90 30 L90 70 L50 90 L10 70 L10 30 Z' fill='%236e4f84' stroke='%234d807f' stroke-width='2'/></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
-<style>
-/* ── RESET ── */
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden}
 
-/* ── INDEX-MATCHED DESIGN TOKENS ── */
+<style>
+
 :root{
   --purple:    #6e4f84;
   --purple-mid:#8b6aa0;
@@ -27,6 +23,8 @@ html,body{height:100%;overflow:hidden}
   --teal:      #4d807f;
   --teal-hi:   #6aa8a7;
   --near-white:#f7f1fb;
+  --mint:      #f5fffa;
+  --charcoal:  #444444;
 
   --pg: rgba(110,79,132,.18);
   --ps: rgba(110,79,132,.09);
@@ -38,61 +36,70 @@ html,body{height:100%;overflow:hidden}
   --bg:     #080610;
   --border: rgba(110,79,132,.2);
   --bd:     rgba(110,79,132,.1);
+
   --txt:    #c4b4d8;
   --txt-d:  #9a88b8;
   --txt-f:  #584870;
 }
 
-/* ── ANIMATIONS — identical to index ── */
-@keyframes shimmer   {0%{background-position:-300% center}100%{background-position:300% center}}
-@keyframes fadeUp    {from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn    {from{opacity:0}to{opacity:1}}
-@keyframes scan      {0%{transform:translateY(-100%);opacity:0}8%{opacity:1}92%{opacity:1}100%{transform:translateY(100vh);opacity:0}}
-@keyframes blink     {0%,100%{opacity:1}50%{opacity:.25}}
-@keyframes spin      {0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
-@keyframes float     {0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
-@keyframes glow-pulse{0%,100%{opacity:.4}50%{opacity:.9}}
-@keyframes bar-fill  {from{width:0}to{width:var(--w)}}
-@keyframes toast-in  {from{opacity:0;transform:translateY(8px) translateX(-50%)}to{opacity:1;transform:translateY(0) translateX(-50%)}}
-@keyframes toast-out {from{opacity:1;transform:translateY(0) translateX(-50%)}to{opacity:0;transform:translateY(-8px) translateX(-50%)}}
-@keyframes pulse-risk{0%,100%{opacity:.12;transform:scale(1)}50%{opacity:.45;transform:scale(1.12)}}
-@keyframes pulse-cluster{0%,100%{opacity:.06;transform:scale(1)}50%{opacity:.18;transform:scale(1.08)}}
-@keyframes pulse-star{0%,100%{opacity:.1;transform:scale(1)}50%{opacity:.35;transform:scale(1.1)}}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
 
-/* ── BACKGROUND — same as index ── */
 body{
   background:
-    radial-gradient(ellipse 1400px 800px at 10%  5%, #140a24,  transparent 50%),
-    radial-gradient(ellipse 1000px 600px at 90% 95%, #0c0a1c,  transparent 50%),
-    radial-gradient(ellipse 700px  500px at 60% 45%, #0a0815,  transparent 55%),
+    radial-gradient(ellipse 1400px 800px at 10% 5%,  #140a24, transparent 50%),
+    radial-gradient(ellipse 1000px 600px at 90% 95%, #0c0a1c, transparent 50%),
+    radial-gradient(ellipse 700px  500px at 60% 45%, #0a0815, transparent 55%),
     var(--bg);
   color:var(--txt);
+  /* GitHub's exact font stack for body */
   font-family:'Plus Jakarta Sans',sans-serif;
   line-height:1.6;
-  height:100%;
+  overflow-x:hidden;
 }
-/* Dot grid */
+
+/* Grid */
 body::before{
   content:'';position:fixed;inset:0;
   background-image:radial-gradient(circle,#2a1840 1px,transparent 1px);
   background-size:32px 32px;opacity:.22;pointer-events:none;z-index:0;
 }
-/* Scan line */
+
+/* Scan */
 body::after{
   content:'';position:fixed;left:0;right:0;height:200px;
   background:linear-gradient(180deg,transparent,rgba(110,79,132,.06),transparent);
   animation:scan 18s linear infinite;pointer-events:none;z-index:0;
 }
-/* ── LAUNCHPAD ACCENT ── */
-:root{
-  --ac:    #8b6aa0;
-  --ac-hi: #cab1df;
-  --ac-g:  rgba(110,79,132,.18);
-  --ac-s:  rgba(110,79,132,.09);
+
+@keyframes scan{
+  0%{transform:translateY(-100%);opacity:0}8%{opacity:1}92%{opacity:1}100%{transform:translateY(100vh);opacity:0}
+}
+@keyframes shimmer{
+  0%{background-position:-300% center}100%{background-position:300% center}
+}
+@keyframes float{
+  0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-14px) rotate(1deg)}
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}
+}
+@keyframes glow-pulse{
+  0%,100%{opacity:.4}50%{opacity:1}
+}
+@keyframes spin-slow{
+  from{transform:rotate(0deg)}to{transform:rotate(360deg)}
 }
 
-/* ── LAYOUT ── */
-/* ── ATLAS NAV ── */
+/* Plus Jakarta Sans for all headings */
+h1,h2,h3,.head-title{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  letter-spacing:-.03em;
+}
+
+.wrapper{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 28px}
+
+/* ─── NAV ─── */
 nav{
   position:fixed;top:0;left:0;right:0;z-index:100;
   background:rgba(8,6,16,.85);
@@ -100,7 +107,7 @@ nav{
   backdrop-filter:blur(16px);
 }
 .nav-inner{
-  max-width:unset;padding:0 28px;
+  max-width:1200px;margin:0 auto;padding:0 28px;
   display:flex;align-items:center;justify-content:space-between;
   height:54px;
 }
@@ -124,1049 +131,684 @@ nav{
   transition:all .18s;
 }
 .nav-link:hover{color:var(--lavender);border-color:var(--bd);background:var(--ps)}
-.nav-link.active{color:var(--lavender);border-color:var(--border);background:var(--pg)}
 .nav-link.gh{border-color:var(--bd);color:var(--lav-dim)}
 .nav-link.gh:hover{border-color:var(--border)}
 
-.layout{
-  position:relative;z-index:1;
-  display:grid;grid-template-columns:var(--col-l,300px) 1fr var(--col-r,360px);
-  height:calc(100vh - 54px);
-  margin-top:54px;
+/* ─── HERO ─── */
+.hero{
+  min-height:100vh;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;
+  text-align:center;
+  padding:120px 0 80px;
+  position:relative;
 }
 
-/* ── PANELS — glass cards like index heads ── */
-.panel{
-  background:linear-gradient(160deg,rgba(16,12,26,.95),rgba(10,8,16,.92));
-  border-right:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;position:relative;
-  backdrop-filter:blur(8px);
+/* Massive radial glow behind hero */
+.hero-glow{
+  position:absolute;
+  width:900px;height:900px;
+  top:50%;left:50%;transform:translate(-50%,-55%);
+  background:
+    radial-gradient(circle at 40% 50%,rgba(110,79,132,.22) 0%,transparent 50%),
+    radial-gradient(circle at 65% 50%,rgba(77,128,127,.16) 0%,transparent 50%);
+  pointer-events:none;
+  animation:glow-pulse 6s ease-in-out infinite;
 }
-.panel::before{
-  content:'';position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(0deg,transparent,transparent 48px,rgba(110,79,132,.014) 48px,rgba(110,79,132,.014) 49px);
-}
-.panel.right{border-right:none;border-left:1px solid var(--border)}
 
-/* ── PANEL HEADER ── */
-.p-hdr{
-  padding:18px 18px 14px;
-  border-bottom:1px solid var(--border);
-  background:linear-gradient(180deg,rgba(20,12,32,.7),transparent);
-  flex-shrink:0;position:relative;z-index:1;
+/* Orbiting ring */
+.hero-orbit{
+  position:absolute;
+  width:600px;height:600px;
+  top:50%;left:50%;transform:translate(-50%,-54%);
+  border:1px solid rgba(110,79,132,.12);
+  border-radius:50%;
+  animation:spin-slow 40s linear infinite;
+  pointer-events:none;
 }
-.eyebrow{
-  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;
-  text-transform:uppercase;color:var(--txt-f);margin-bottom:8px;
-  display:flex;align-items:center;gap:8px;
+.hero-orbit::before{
+  content:'';position:absolute;
+  width:8px;height:8px;border-radius:50%;
+  background:var(--purple);top:-4px;left:50%;transform:translateX(-50%);
+  box-shadow:0 0 12px var(--purple);
 }
-.eyebrow::before{content:'';width:14px;height:1px;background:var(--txt-f);flex-shrink:0}
-.p-hdr h1{
+.hero-orbit-2{
+  position:absolute;
+  width:440px;height:440px;
+  top:50%;left:50%;transform:translate(-50%,-54%);
+  border:1px solid rgba(77,128,127,.1);
+  border-radius:50%;
+  animation:spin-slow 28s linear infinite reverse;
+  pointer-events:none;
+}
+.hero-orbit-2::before{
+  content:'';position:absolute;
+  width:6px;height:6px;border-radius:50%;
+  background:var(--teal);bottom:-3px;left:50%;transform:translateX(-50%);
+  box-shadow:0 0 10px var(--teal);
+}
+
+.hero-eyebrow{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--txt-f);margin-bottom:32px;
+  display:flex;align-items:center;gap:12px;justify-content:center;
+  animation:fadeUp .6s ease both;position:relative;
+}
+.hero-eyebrow span.sep{
+  width:4px;height:4px;border-radius:50%;
+  background:var(--txt-f);opacity:.6;flex-shrink:0;
+}
+
+h1.hero-title{
   font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:16px;font-weight:800;line-height:1.2;letter-spacing:-.025em;
-  background:linear-gradient(90deg,var(--near-white),var(--ac-hi,var(--lavender)),var(--near-white));
-  background-size:300% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  animation:shimmer 9s linear infinite;
-}
-.p-hdr .sub{
-  margin-top:6px;font-size:11px;line-height:1.55;color:var(--txt-f);
-}
-
-/* ── STATS BAR ── */
-.stats{
-  display:flex;border-bottom:1px solid var(--border);flex-shrink:0;
-  position:relative;z-index:1;background:rgba(0,0,0,.12);
-}
-.stat{flex:1;text-align:center;padding:11px 4px;border-right:1px solid var(--bd)}
-.stat:last-child{border-right:none}
-.stat b{
-  font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:400;
-  color:var(--ac-hi,var(--lavender));display:block;line-height:1;
-}
-.stat b.risk-val{color:#e06060}
-.stat span{
-  font-family:'JetBrains Mono',monospace;
-  font-size:7px;letter-spacing:1.8px;text-transform:uppercase;
-  color:var(--txt-f);margin-top:3px;display:block;
+  font-size:clamp(3.6em,9vw,7.5em);
+  font-weight:900;line-height:.95;letter-spacing:-.025em;
+  margin-bottom:28px;
+  background:linear-gradient(140deg,
+    var(--near-white) 0%,
+    var(--lavender) 35%,
+    var(--teal-hi) 65%,
+    var(--near-white) 100%);
+  background-size:300% auto;
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  animation:fadeUp .6s .08s ease both, shimmer 9s linear infinite;
+  position:relative;
 }
 
-/* ── SCROLL AREAS ── */
-.scroll{flex:1;overflow-y:auto;padding:14px;position:relative;z-index:1}
-.scroll::-webkit-scrollbar{width:2px}
-.scroll::-webkit-scrollbar-thumb{background:var(--bd);border-radius:2px}
-
-/* ── SECTION LABELS ── */
-.lbl{
-  font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:3.5px;
-  text-transform:uppercase;color:var(--ac,var(--purple-mid));opacity:.6;
-  margin:14px 0 8px;display:flex;align-items:center;gap:8px;
-}
-.lbl::after{content:'';flex:1;height:1px;background:var(--bd)}
-
-/* ── INPUTS ── */
-.search-form{display:flex;flex-direction:column;gap:6px;padding-bottom:14px;border-bottom:1px solid var(--bd);margin-bottom:2px}
-.search-row{display:flex;gap:6px}
-.search-row input,
-.token-row input,
-.scenario-picker select{
-  flex:1;background:rgba(0,0,0,.38);
-  border:1px solid var(--border);border-radius:6px;
-  color:var(--txt);font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;
-  padding:8px 12px;outline:none;transition:border-color .2s,box-shadow .2s;
-  -webkit-appearance:none;appearance:none;
-}
-.search-row input:focus,
-.token-row input:focus,
-.scenario-picker select:focus{
-  border-color:var(--ac,var(--purple-mid));
-  box-shadow:0 0 0 2px rgba(110,79,132,.12);
-}
-.search-row input::placeholder,
-.token-row input::placeholder{color:var(--txt-f);font-size:11px}
-.token-row input{
-  width:100%;color:var(--txt-d);font-size:11px;padding:7px 10px;
-}
-
-.field-label{
-  font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--txt-f);
-  margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;
-}
-.scenario-picker{display:flex;flex-direction:column;gap:6px;padding-bottom:14px;border-bottom:1px solid var(--bd);margin-bottom:2px}
-.scenario-picker select{cursor:pointer;color:var(--txt-d)}
-.scenario-help{
-  font-size:11px;color:var(--txt-d);line-height:1.65;
-  padding:10px 12px;background:rgba(110,79,132,.07);
-  border:1px solid var(--bd);border-radius:6px;
-  margin:8px 0 10px;border-left:2px solid var(--ac,var(--purple-mid));
-}
-
-/* ── BUTTONS ── */
-.search-row button{
-  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.3px;
-  padding:0 14px;border:1px solid var(--ac,var(--purple-mid));border-radius:6px;
-  background:rgba(110,79,132,.1);color:var(--ac-hi,var(--lavender));cursor:pointer;
-  transition:all .2s;white-space:nowrap;
-}
-.search-row button:hover:not(:disabled){
-  background:rgba(110,79,132,.2);border-color:var(--ac-hi,var(--lavender));
-}
-.btns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.btn{
-  font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.3px;
-  padding:8px 6px;border:1px solid var(--bd);border-radius:6px;
-  background:rgba(0,0,0,.22);color:var(--txt-d);cursor:pointer;
-  transition:all .2s cubic-bezier(.34,1.56,.64,1);text-align:center;
-}
-.btn:hover{
-  border-color:var(--border);color:var(--near-white);
-  background:rgba(110,79,132,.1);transform:translateY(-1px);
-}
-.btn.on{
-  border-color:var(--ac,var(--purple-mid));
-  color:var(--ac-hi,var(--lavender));
-  background:rgba(110,79,132,.14);
-  box-shadow:0 0 18px rgba(110,79,132,.18);
-}
-.btn.full{grid-column:1/-1}
-/* per-tool on variants */
-.btn.risk-btn.on{border-color:#e06060;color:#e06060;background:rgba(224,96,96,.1);box-shadow:0 0 14px rgba(224,96,96,.15)}
-.btn.bridge-btn.on{border-color:#d4a830;color:#d4a830;background:rgba(212,168,48,.1)}
-.btn.dark-forest.on{border-color:rgba(77,128,127,.7);color:var(--teal-hi);background:rgba(77,128,127,.12)}
-.btn.demo-btn{border-color:rgba(77,214,140,.35);color:#4dd68c}
-.btn.demo-btn:hover{background:rgba(77,214,140,.1)}
-
-/* ── SLIDERS ── */
-.srow{display:flex;justify-content:space-between;margin-bottom:5px;align-items:baseline}
-.srow span{font-size:10px;color:var(--txt-f)}
-.srow b{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ac-hi,var(--lavender));min-width:32px;text-align:right}
-input[type=range]{
-  -webkit-appearance:none;width:100%;height:2px;margin-bottom:12px;
-  background:linear-gradient(90deg,rgba(110,79,132,.3),var(--bd));
-  border-radius:2px;outline:none;
-}
-input[type=range]::-webkit-slider-thumb{
-  -webkit-appearance:none;width:12px;height:12px;border-radius:50%;
-  background:var(--ac-hi,var(--lavender));cursor:pointer;
-  box-shadow:0 0 10px rgba(110,79,132,.4);
-}
-
-/* ── CENTER CANVAS ── */
-.center{position:relative;overflow:hidden}
-#viz{width:100%;height:100%;display:block;cursor:crosshair}
-#viz:active{cursor:grabbing}
-
-/* ── HUD ── */
-.hud{
-  position:absolute;top:14px;left:14px;
-  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;
-  color:var(--txt-f);
-  background:rgba(8,6,16,.88);border:1px solid var(--border);
-  padding:7px 12px;border-radius:6px;pointer-events:none;
-  display:flex;align-items:center;gap:8px;
-  backdrop-filter:blur(8px);
-}
-.hud-dot{width:5px;height:5px;border-radius:50%;background:var(--ac,var(--purple-mid));animation:blink 2.2s infinite}
-
-/* ── LEGEND ── */
-.legend{
-  position:absolute;bottom:14px;left:14px;
-  background:rgba(8,6,16,.88);border:1px solid var(--border);
-  padding:10px 14px;border-radius:6px;pointer-events:none;
-  font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--txt-f);
-  backdrop-filter:blur(8px);
-}
-.legend-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
-.legend-row:last-child{margin-bottom:0}
-.legend-dot{width:7px;height:7px;border-radius:50%}
-
-/* ── EMBED BADGE ── */
-.embed-badge{
-  position:absolute;top:14px;right:14px;
-  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--txt-f);background:rgba(8,6,16,.88);border:1px solid var(--bd);
-  padding:6px 11px;border-radius:6px;pointer-events:none;
-  backdrop-filter:blur(8px);
-}
-
-/* ── LOADING ── */
-.loading-state{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  background:rgba(8,6,16,.96);border:1px solid var(--border);border-radius:12px;
-  padding:28px 40px;text-align:center;z-index:100;
-  backdrop-filter:blur(12px);
-}
-.loading-state .spinner{
-  display:inline-block;width:24px;height:24px;
-  border:2px solid var(--bd);border-top:2px solid var(--ac-hi,var(--lavender));
-  border-radius:50%;animation:spin 1s linear infinite;margin-bottom:14px;
-}
-.loading-state .msg{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txt-d)}
-
-/* ── TOOLTIP ── */
-#tip{
-  position:fixed;background:rgba(8,6,16,.96);
-  border:1px solid var(--border);border-radius:8px;
-  padding:10px 12px;pointer-events:none;z-index:200;display:none;max-width:230px;
-  box-shadow:0 8px 32px rgba(0,0,0,.6);
-  backdrop-filter:blur(12px);
-}
-#tip .tn{font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;color:var(--ac-hi,var(--lavender));letter-spacing:-.01em}
-#tip .tm{font-size:10px;color:var(--txt-d);margin-top:4px;line-height:1.5}
-
-/* ── TOAST ── */
-.toast{
-  position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
-  background:rgba(8,6,16,.96);border:1px solid var(--border);
-  border-radius:8px;padding:10px 20px;
-  font-family:'JetBrains Mono',monospace;font-size:10px;
-  z-index:300;pointer-events:none;white-space:nowrap;
-  backdrop-filter:blur(12px);
-}
-.toast.ok  {border-color:rgba(77,214,140,.45);color:#4dd68c}
-.toast.err {border-color:rgba(224,96,96,.45);color:#e06060}
-.toast.warn{border-color:rgba(212,168,48,.45);color:#d4a830}
-.toast.info{border-color:var(--border);color:var(--ac-hi,var(--lavender))}
-.toast.entering{animation:toast-in .25s ease forwards}
-.toast.leaving {animation:toast-out .25s ease forwards}
-
-/* ── DETAIL PANEL ── */
-.d-hero{
-  padding:16px;border-bottom:1px solid var(--border);
-  animation:fadeUp .28s ease;position:relative;z-index:1;
-}
-.d-typelbl{
-  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;
-  text-transform:uppercase;margin-bottom:8px;color:var(--ac-hi,var(--lavender));
-}
-.d-name{
+.hero-sub{
   font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:15px;font-weight:800;line-height:1.25;
+  font-size:clamp(1.1em,2.5vw,1.5em);font-weight:600;
+  color:var(--lav-dim);margin-bottom:18px;letter-spacing:-.01em;
+  animation:fadeUp .6s .16s ease both;position:relative;
+}
+
+.hero-desc{
+  font-size:1em;color:var(--txt-d);
+  max-width:540px;margin:0 auto 52px;line-height:1.78;
+  animation:fadeUp .6s .24s ease both;position:relative;
+}
+
+/* Mini tool pills in hero */
+.hero-tools{
+  display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+  animation:fadeUp .6s .32s ease both;position:relative;
+}
+
+.tool-pill{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 22px;border-radius:8px;
+  text-decoration:none;font-weight:600;font-size:.95em;
+  border:1px solid;letter-spacing:-.01em;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  font-family:'Plus Jakarta Sans',sans-serif;
+}
+.tool-pill.nav{
+  background:rgba(77,128,127,.12);border-color:rgba(77,128,127,.5);
+  color:var(--teal-hi);
+}
+.tool-pill.nav:hover{
+  background:rgba(77,128,127,.25);border-color:var(--teal);
+  box-shadow:0 8px 32px rgba(77,128,127,.3);transform:translateY(-4px);
+}
+.tool-pill.launch{
+  background:rgba(110,79,132,.15);border-color:rgba(110,79,132,.55);
+  color:var(--lavender);
+}
+.tool-pill.launch:hover{
+  background:rgba(110,79,132,.3);border-color:var(--purple-mid);
+  box-shadow:0 8px 32px rgba(110,79,132,.32);transform:translateY(-4px);
+}
+.tool-pill.hub{
+  background:rgba(202,177,223,.09);border-color:rgba(202,177,223,.35);
+  color:var(--lavender);
+}
+.tool-pill.hub:hover{
+  background:rgba(202,177,223,.18);border-color:var(--lav-dim);
+  box-shadow:0 8px 32px rgba(202,177,223,.18);transform:translateY(-4px);
+}
+
+/* ─── DIVIDER ─── */
+.divider{
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--border),transparent);
+  margin:0;position:relative;z-index:1;
+}
+
+/* ─── THREE HEADS ─── */
+.heads-section{padding:100px 0 80px}
+
+.s-eye{
+  font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:4px;
+  text-transform:uppercase;color:var(--txt-f);
+  text-align:center;margin-bottom:14px;
+}
+.s-title{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(2em,5vw,3.4em);font-weight:800;
   color:var(--near-white);letter-spacing:-.025em;
+  text-align:center;margin-bottom:56px;
 }
-.d-sub{margin-top:4px;font-size:11px;color:var(--txt-d);line-height:1.5}
 
-.badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:10px}
-.badge{
-  display:inline-flex;align-items:center;gap:4px;
-  font-family:'JetBrains Mono',monospace;font-size:7.5px;
-  border:1px solid var(--bd);padding:3px 8px;border-radius:4px;
-  background:rgba(0,0,0,.3);color:var(--txt-d);
+.heads{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(330px,1fr));
+  gap:20px;
 }
-.badge .bd{width:5px;height:5px;border-radius:50%;flex-shrink:0}
 
-.kv{
-  display:grid;grid-template-columns:72px 1fr;gap:6px 10px;
-  padding:12px 16px;border-bottom:1px solid var(--bd);position:relative;z-index:1;
+.head{
+  background:linear-gradient(160deg,rgba(16,12,26,.95),rgba(10,8,16,.9));
+  border:1px solid var(--bd);border-radius:14px;
+  padding:40px 34px;
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+  transition:transform .4s cubic-bezier(.34,1.56,.64,1),border-color .3s,box-shadow .3s;
 }
-.kk{
-  font-family:'JetBrains Mono',monospace;font-size:8px;
-  letter-spacing:.8px;text-transform:uppercase;color:var(--txt-f);padding-top:1px;
+
+/* Top accent bar */
+.head::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  opacity:0;transition:opacity .3s;border-radius:14px 14px 0 0;
 }
-.vv{font-size:11px;color:var(--txt-d)}
-.vv a{color:var(--ac-hi,var(--lavender));text-decoration:none}
-.vv a:hover{text-decoration:underline}
-.vv.good{color:#4dd68c}
-.vv.warn{color:#d4a830}
-.vv.bad{color:#e06060}
-
-/* Health bar */
-.health-bar-wrap{margin-top:5px}
-.health-bar-bg{height:3px;background:var(--bd);border-radius:2px;overflow:hidden}
-.health-bar-fg{height:3px;border-radius:2px;animation:bar-fill .7s ease forwards;width:0}
-
-.d-sec{padding:12px 16px;border-bottom:1px solid var(--bd);position:relative;z-index:1}
-.d-sec:last-child{border-bottom:none}
-.d-sec h3{
-  font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:3px;
-  text-transform:uppercase;color:var(--ac,var(--purple-mid));opacity:.6;margin-bottom:10px;
-}
-.d-sec p{font-size:11px;line-height:1.75;color:var(--txt-d)}
-.d-sec p strong{color:var(--txt)}
-
-.conn-list{display:flex;flex-direction:column;gap:4px}
-.conn{
-  padding:7px 10px;border:1px solid var(--bd);border-radius:6px;
-  background:rgba(0,0,0,.18);cursor:pointer;transition:all .18s;
-  display:flex;justify-content:space-between;align-items:center;gap:8px;
-}
-.conn:hover{
-  border-color:var(--border);background:rgba(110,79,132,.08);
-  transform:translateX(2px);
-}
-.cn{font-size:11px;color:var(--txt);font-weight:500}
-.cm{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt-f);flex-shrink:0}
-.conn-signal{font-size:10px}
-
-.hint-txt{font-size:11px;line-height:1.78;color:var(--txt-d)}
-.hint-txt strong{color:var(--txt)}
-
-/* ── GRAPH NODES ── */
-.g-node{cursor:pointer}
-.g-node circle{transition:all .2s}
-.g-node:hover circle.main-circle{filter:brightness(1.5)}
-.g-node text{
-  font-family:'JetBrains Mono',monospace;font-size:8px;
-  fill:var(--near-white);pointer-events:none;
-  text-shadow:0 1px 8px rgba(0,0,0,1),0 0 20px rgba(0,0,0,.9);
-}
-.g-node.dim{opacity:.05}
-.g-node.focus{opacity:1}
-.g-node.cluster-node circle.main-circle{animation:float 4s ease-in-out infinite}
-
-/* ── LAUNCHPAD-SPECIFIC ── */
-:root{--col-l:310px;--col-r:360px}
-
-/* Persona chips — matches index .head card aesthetic */
-.personas{display:flex;flex-direction:column;gap:6px;margin-bottom:2px}
-.persona{
-  padding:12px 14px;
-  background:linear-gradient(160deg,rgba(16,12,26,.9),rgba(10,8,16,.85));
-  border:1px solid var(--bd);border-radius:10px;
-  cursor:pointer;transition:all .3s cubic-bezier(.34,1.56,.64,1);
-  display:flex;align-items:center;gap:12px;position:relative;overflow:hidden;
-}
-.persona::before{
+/* Glow bg */
+.head::before{
   content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at 50% -30%,rgba(110,79,132,.18),transparent 65%);
-  opacity:0;transition:opacity .3s;pointer-events:none;border-radius:10px;
+  opacity:0;transition:opacity .4s;pointer-events:none;border-radius:14px;
 }
-.persona:hover{border-color:rgba(139,106,160,.45);transform:translateY(-2px)}
-.persona:hover::before{opacity:1}
-.persona.active{
-  border-color:var(--ac);
-  box-shadow:0 8px 32px rgba(110,79,132,.28);
-  transform:translateY(-2px);
+
+.head.navigator{--hc:var(--teal);--hg:var(--tg);--hs:var(--ts)}
+.head.navigator::before{background:radial-gradient(ellipse at 50% -20%,rgba(77,128,127,.2),transparent 65%)}
+.head.navigator::after{background:linear-gradient(90deg,transparent,var(--teal),transparent)}
+.head.navigator:hover{border-color:rgba(77,128,127,.45);transform:translateY(-10px);box-shadow:0 30px 70px rgba(77,128,127,.22)}
+
+.head.launchpad{--hc:var(--purple-mid);--hg:var(--pg);--hs:var(--ps)}
+.head.launchpad::before{background:radial-gradient(ellipse at 50% -20%,rgba(110,79,132,.22),transparent 65%)}
+.head.launchpad::after{background:linear-gradient(90deg,transparent,var(--purple-mid),transparent)}
+.head.launchpad:hover{border-color:rgba(110,79,132,.5);transform:translateY(-10px);box-shadow:0 30px 70px rgba(110,79,132,.28)}
+
+.head.hub{--hc:var(--lav-dim);--hg:var(--lg);--hs:var(--ls)}
+.head.hub::before{background:radial-gradient(ellipse at 50% -20%,rgba(202,177,223,.18),transparent 65%)}
+.head.hub::after{background:linear-gradient(90deg,transparent,var(--lav-dim),transparent)}
+.head.hub:hover{border-color:rgba(202,177,223,.35);transform:translateY(-10px);box-shadow:0 30px 70px rgba(202,177,223,.17)}
+
+.head:hover::before,.head:hover::after{opacity:1}
+
+.head-num{
+  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--hc);opacity:.45;margin-bottom:22px;
 }
-.persona.active::before{opacity:1}
-.persona-icon{font-size:18px;flex-shrink:0}
-.persona-name{
+.head-icon{
+  font-size:2.2em;margin-bottom:22px;display:block;
+  transition:transform .3s;
+}
+.head:hover .head-icon{transform:scale(1.12)}
+
+.head-title{
   font-family:'Plus Jakarta Sans',sans-serif;
-  font-size:12px;font-weight:700;color:var(--near-white);letter-spacing:-.02em;
+  font-size:1.9em;font-weight:800;letter-spacing:-.025em;
+  color:var(--near-white);margin-bottom:7px;
 }
-.persona-desc{font-size:10px;color:var(--txt-d);margin-top:2px;line-height:1.45}
-
-/* Cluster chips */
-.clusters{display:flex;flex-wrap:wrap;gap:5px;padding-bottom:14px;border-bottom:1px solid var(--border)}
-.cluster-chip{
-  padding:5px 10px;border:1px solid var(--bd);border-radius:5px;
+.head-sub{
   font-family:'JetBrains Mono',monospace;font-size:9px;
-  color:var(--txt-d);cursor:pointer;transition:all .18s;
-  background:rgba(0,0,0,.2);
+  color:var(--hc);margin-bottom:20px;letter-spacing:.2px;
 }
-.cluster-chip:hover{border-color:var(--border);color:var(--txt)}
-.cluster-chip.active{
-  border-color:var(--ac);color:var(--ac-hi);
-  background:rgba(110,79,132,.12);
+.head-desc{
+  font-size:.92em;color:var(--txt-d);line-height:1.82;margin-bottom:26px;flex-grow:1;
 }
 
-/* Trust legend */
-.trust-legend{
-  display:flex;flex-direction:column;gap:5px;
-  padding:10px 12px;background:rgba(110,79,132,.06);
-  border:1px solid var(--bd);border-radius:8px;margin-bottom:2px;
+.signals{
+  padding:14px 16px;
+  background:rgba(0,0,0,.22);
+  border:1px solid rgba(255,255,255,.04);
+  border-radius:6px;margin-bottom:26px;
 }
-.trust-row{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--txt-d)}
-.trust-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-
-/* Launch CTA button */
-.start-btn{
-  display:block;margin:10px 0;padding:12px 16px;
-  background:rgba(110,79,132,.14);
-  border:1px solid var(--ac);border-radius:8px;
-  color:var(--ac-hi);
-  font-family:'Plus Jakarta Sans',sans-serif;font-size:12px;font-weight:700;
-  letter-spacing:-.01em;text-decoration:none;text-align:center;cursor:pointer;
-  transition:all .25s cubic-bezier(.34,1.56,.64,1);
+.sig-lbl{
+  font-family:'JetBrains Mono',monospace;font-size:7.5px;
+  letter-spacing:2px;text-transform:uppercase;
+  color:var(--hc);opacity:.55;margin-bottom:9px;
 }
-.start-btn:hover{
-  background:rgba(110,79,132,.26);border-color:var(--ac-hi);
-  box-shadow:0 8px 28px rgba(110,79,132,.3);transform:translateY(-2px);
+.sig{
+  display:flex;align-items:baseline;gap:7px;
+  font-size:.83em;color:var(--txt-d);margin-bottom:5px;line-height:1.5;
+}
+.sig:last-child{margin-bottom:0}
+.sig-arrow{
+  color:var(--hc);opacity:.55;flex-shrink:0;
+  font-size:.8em;min-width:16px;text-align:center;
 }
 
+.head-btn{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 18px;
+  border:1px solid var(--hc);border-radius:6px;
+  background:var(--hs);color:var(--hc);
+  text-decoration:none;
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;
+  letter-spacing:.5px;text-transform:uppercase;
+  transition:all .22s;
+}
+.head-btn:hover{background:var(--hg);box-shadow:0 0 28px var(--hg)}
+.head-btn .arr{transition:transform .18s}
+.head-btn:hover .arr{transform:translateX(5px)}
+
+/* ─── QUOTE ─── */
+.quote-section{
+  margin:70px 0;
+  padding:70px 64px;
+  background:linear-gradient(135deg,rgba(110,79,132,.12),rgba(77,128,127,.08));
+  border:1px solid var(--border);border-radius:16px;
+  text-align:center;position:relative;overflow:hidden;
+}
+.quote-section::before{
+  content:'"';
+  position:absolute;top:-60px;left:20px;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:320px;font-weight:900;line-height:1;
+  color:var(--purple);opacity:.035;pointer-events:none;
+  -webkit-text-fill-color:var(--purple);
+}
+blockquote{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(1.3em,3vw,2em);font-weight:700;
+  color:var(--near-white);line-height:1.4;
+  letter-spacing:-.03em;margin-bottom:22px;position:relative;
+}
+blockquote em{color:var(--lavender);font-style:normal}
+.quote-section p{
+  font-size:.95em;color:var(--txt-d);max-width:620px;margin:0 auto;line-height:1.82;
+  position:relative;
+}
+
+/* ─── WHY ─── */
+.why-section{padding:60px 0 80px}
+
+.why-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:16px;
+}
+.why-card{
+  padding:28px 26px;
+  background:rgba(14,10,22,.7);
+  border:1px solid var(--bd);border-radius:10px;
+  transition:all .22s;position:relative;
+}
+.why-card::before{
+  content:'';position:absolute;left:0;top:25%;bottom:25%;width:2px;
+  border-radius:2px;opacity:0;transition:opacity .22s;
+}
+.why-card:nth-child(3n+1)::before{background:var(--purple)}
+.why-card:nth-child(3n+2)::before{background:var(--teal)}
+.why-card:nth-child(3n)::before{background:var(--lav-dim)}
+.why-card:hover{border-color:var(--border);transform:translateX(4px)}
+.why-card:hover::before{opacity:.8}
+.why-icon{font-size:1.5em;margin-bottom:12px;display:block}
+.why-card h3{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:1.1em;font-weight:700;letter-spacing:-.02em;
+  color:var(--near-white);margin-bottom:8px;
+}
+.why-card p{font-size:.88em;color:var(--txt-d);line-height:1.78}
+
+/* ─── FINAL CTA ─── */
+.cta-section{
+  text-align:center;
+  padding:90px 60px;
+  background:linear-gradient(140deg,rgba(110,79,132,.15),rgba(77,128,127,.1));
+  border:1px solid var(--border);border-radius:16px;
+  margin:60px 0 100px;position:relative;overflow:hidden;
+}
+.cta-section::after{
+  content:'';position:absolute;
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(110,79,132,.18),transparent 60%);
+  top:-250px;right:-200px;pointer-events:none;
+}
+.cta-section::before{
+  content:'';position:absolute;
+  width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(77,128,127,.14),transparent 60%);
+  bottom:-180px;left:-120px;pointer-events:none;
+}
+.cta-section h2{
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:clamp(2em,4.5vw,3.5em);font-weight:900;
+  color:var(--near-white);margin-bottom:16px;
+  letter-spacing:-.025em;position:relative;
+}
+.cta-section p{
+  font-size:.97em;color:var(--txt-d);
+  max-width:500px;margin:0 auto 44px;line-height:1.8;position:relative;
+}
+.cta-row{
+  display:flex;gap:12px;justify-content:center;flex-wrap:wrap;
+  position:relative;
+}
+.cta-gh{
+  display:block;margin-top:32px;
+  font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--txt-f);text-decoration:none;
+  transition:color .2s;position:relative;
+}
+.cta-gh:hover{color:var(--lav-dim)}
+
+/* ─── FOOTER ─── */
+footer{
+  padding:44px 0 36px;
+  border-top:1px solid var(--bd);
+  position:relative;z-index:1;
+}
+.foot-inner{
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:20px;
+}
+.foot-brand{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:14px;font-weight:700;
+  color:var(--lav-dim);display:flex;align-items:center;gap:8px;
+  letter-spacing:-.02em;
+}
+.foot-links{display:flex;gap:3px;flex-wrap:wrap}
+.foot-link{
+  font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.5px;
+  text-transform:uppercase;padding:4px 10px;border-radius:3px;
+  color:var(--txt-f);text-decoration:none;transition:all .18s;
+}
+.foot-link:hover{color:var(--lav-dim);background:var(--ps)}
+.foot-meta{
+  width:100%;text-align:center;
+  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.5px;
+  color:var(--txt-f);margin-top:8px;
+}
+
+/* ─── RESPONSIVE ─── */
+@media(max-width:900px){
+  .heads{grid-template-columns:1fr}
+  .nav-link:not(.gh){display:none}
+  .quote-section{padding:50px 32px}
+  .cta-section{padding:60px 32px}
+}
+@media(max-width:600px){
+  .hero{padding:110px 0 60px}
+  .hero-tools{flex-direction:column;align-items:center}
+  .tool-pill{width:100%;max-width:280px;justify-content:center}
+  .cta-row{flex-direction:column;align-items:center}
+  .cta-section .tool-pill{width:100%;max-width:280px;justify-content:center}
+  .hero-orbit,.hero-orbit-2{display:none}
+  .foot-inner{flex-direction:column}
+  .foot-link{padding:6px 12px}
+}
 </style>
 </head>
 <body>
+
+<!-- ─── NAV ─── -->
 <nav>
   <div class="nav-inner">
-    <a href="index.html" class="nav-brand">
+    <a href="#" class="nav-brand">
       <div class="brand-hex"></div>
       GitHub Atlas
     </a>
     <div class="nav-links">
       <a href="navigator.html" class="nav-link">Radarr</a>
-      <a href="launchpad.html" class="nav-link active">Navigator</a>
+      <a href="launchpad.html" class="nav-link">Navigator</a>
       <a href="repo-hub.html" class="nav-link">Hub</a>
       <a href="https://github.com/blackmath88/github-atlas" target="_blank" class="nav-link gh">⭐ GitHub</a>
     </div>
   </div>
 </nav>
 
+<div class="wrapper">
 
-<div id="tip"><div class="tn" id="tn"></div><div class="tm" id="tm"></div></div>
+<!-- ─── HERO ─── -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-orbit"></div>
+  <div class="hero-orbit-2"></div>
 
-<div class="layout">
-
-<!-- ══════════════════
-     LEFT PANEL
-══════════════════ -->
-<div class="panel">
-  <div class="p-hdr">
-    <div class="eyebrow">github atlas · navigator</div>
-    <h1>Explore &amp; Get Started</h1>
-    <div class="sub" id="headerSub">Find the right tool. Start in 30 seconds.</div>
+  <div class="hero-eyebrow">Open source <span class="sep"></span> MIT <span class="sep"></span> No signup</div>
+  <h1 class="hero-title">Navigate<br/>What You<br/>Build</h1>
+  <div class="hero-sub">Three heads. One mission. Carry less weight.</div>
+  <p class="hero-desc">
+    Interactive maps for GitHub's ecosystem. Analyze risk. 
+    Discover the right libraries. Showcase your org to your community.
+  </p>
+  <div class="hero-tools">
+    <a href="navigator.html" class="tool-pill nav">⚡ Analyze risk → Radarr</a>
+    <a href="launchpad.html" class="tool-pill launch">🗺️ Discover GitHub → Navigator</a>
+    <a href="repo-hub.html" class="tool-pill hub">🏢 Map your org → Hub</a>
   </div>
-  <div class="stats">
-    <div class="stat"><b id="sN">—</b><span>repos</span></div>
-    <div class="stat"><b id="sC">—</b><span>clusters</span></div>
-    <div class="stat"><b id="sS">—</b><span>official</span></div>
-  </div>
-  <div class="scroll">
+</section>
 
-    <div class="lbl">who are you?</div>
-    <div class="personas">
-      <div class="persona active" data-persona="explorer" onclick="setPersona(this)">
-        <div class="persona-icon">🧭</div>
-        <div class="persona-text">
-          <div class="persona-name">Explorer</div>
-          <div class="persona-desc">New to AI tools. Want to understand what's out there.</div>
-        </div>
+<div class="divider"></div>
+
+<!-- ─── THREE HEADS ─── -->
+<section class="heads-section" id="tools">
+  <div class="s-eye">The Three Heads</div>
+  <h2 class="s-title">One for every mission</h2>
+
+  <div class="heads">
+
+    <div class="head navigator">
+      <div class="head-num">Head 01 · radarr</div>
+      <span class="head-icon">⚡</span>
+      <div class="head-title">Radarr</div>
+      <div class="head-sub">Ecosystem risk &amp; sustainability analysis</div>
+      <p class="head-desc">
+        You're not just exploring — you're <em>betting</em> on this ecosystem. Radarr shows you the real structure: who holds it together, what could break, whether it's sustainable.
+      </p>
+      <div class="signals">
+        <div class="sig-lbl">what you see</div>
+        <div class="sig"><span class="sig-arrow">→</span>Four analytical lenses — Architecture, Org Map, Health, Due Diligence</div>
+        <div class="sig"><span class="sig-arrow">→</span>Single-maintainer risk · stale repos · burnout signals</div>
+        <div class="sig"><span class="sig-arrow">→</span>Bridge engineers spanning 3+ repos — key people risk</div>
+        <div class="sig"><span class="sig-arrow">→</span>Health scoring · sustainability indicators</div>
       </div>
-      <div class="persona" data-persona="builder" onclick="setPersona(this)">
-        <div class="persona-icon">🔨</div>
-        <div class="persona-text">
-          <div class="persona-name">Builder</div>
-          <div class="persona-desc">Developer. Need the right library for a project.</div>
-        </div>
-      </div>
-      <div class="persona" data-persona="prompter" onclick="setPersona(this)">
-        <div class="persona-icon">✍️</div>
-        <div class="persona-text">
-          <div class="persona-name">Prompt Engineer</div>
-          <div class="persona-desc">Crafting prompts. Want best collections &amp; frameworks.</div>
-        </div>
-      </div>
-      <div class="persona" data-persona="org" onclick="setPersona(this)">
-        <div class="persona-icon">🏢</div>
-        <div class="persona-text">
-          <div class="persona-name">Org / Team Lead</div>
-          <div class="persona-desc">Evaluating tools for deployment at scale.</div>
-        </div>
-      </div>
+      <a href="navigator.html" class="head-btn">
+        <span>Launch Radarr</span><span class="arr">→</span>
+      </a>
     </div>
 
-    <div class="lbl">intent clusters</div>
-    <div class="clusters" id="clusterChips"></div>
-
-    <div class="lbl">search</div>
-    <div class="search-form">
-      <div class="search-row">
-        <input id="queryInput" type="text" placeholder="search topic or repo…"/>
-        <button id="searchBtn">Find</button>
+    <div class="head launchpad">
+      <div class="head-num">Head 02 · navigator</div>
+      <span class="head-icon">🗺️</span>
+      <div class="head-title">Navigator</div>
+      <div class="head-sub">Intent-first discovery for GitHub's 420M repos</div>
+      <p class="head-desc">
+        GitHub wasn't designed for the new wave of AI-curious users. Navigator is the map that should have existed — search any topic and get an interactive graph. Drill inside any repo to explore its structure.
+      </p>
+      <div class="signals">
+        <div class="sig-lbl">what you see</div>
+        <div class="sig"><span class="sig-arrow">→</span>Live GitHub API search — any topic as a force graph</div>
+        <div class="sig"><span class="sig-arrow">→</span>28 curated AI/LLM repos as a default landing map</div>
+        <div class="sig"><span class="sig-arrow">→</span>4 personas · 10 intent clusters · drill inside any repo</div>
+        <div class="sig"><span class="sig-arrow">→</span>🌲 Dark Forest — hides sensitive/leaked repos by default</div>
       </div>
+      <a href="launchpad.html" class="head-btn">
+        <span>Launch Navigator</span><span class="arr">→</span>
+      </a>
     </div>
 
-    <div class="lbl">filters</div>
-    <div class="btns">
-      <button class="btn full dark-forest" id="btnDarkForest">🌲 Dark Forest</button>
-      <button class="btn full" id="btnOfficialOnly">⭐ Official Only</button>
-      <button class="btn full" id="btnReset">// reset</button>
-    </div>
-
-    <div class="lbl">trust levels</div>
-    <div class="trust-legend">
-      <div class="trust-row"><div class="trust-dot" style="background:#f0a830"></div>Official — maintained by major orgs</div>
-      <div class="trust-row"><div class="trust-dot" style="background:#60c060"></div>Community — popular, well-maintained</div>
-      <div class="trust-row"><div class="trust-dot" style="background:#a060c0"></div>Sensitive — leaked / system prompts</div>
-    </div>
-
-    <div class="lbl" style="margin-top:20px">contribute a map</div>
-    <div style="
-      padding:12px 14px;
-      background:linear-gradient(160deg,rgba(77,128,127,.08),rgba(110,79,132,.06));
-      border:1px solid rgba(77,128,127,.25);border-radius:10px;
-      margin-bottom:14px;
-    ">
-      <div style="font-size:11px;color:#9d84b8;line-height:1.7;margin-bottom:10px">
-        <strong style="color:#6aa8a7">Anyone can add a curated map.</strong><br>
-        Drop a JSON file in <code style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#cab1df;background:rgba(110,79,132,.15);padding:1px 5px;border-radius:3px">/curated/</code> and open a PR. Navigator picks it up automatically.
+    <div class="head hub">
+      <div class="head-num">Head 03 · hub</div>
+      <span class="head-icon">🏢</span>
+      <div class="head-title">Hub</div>
+      <div class="head-sub">Map your org. Share with your community.</div>
+      <p class="head-desc">
+        Maintainers: your users deserve a map. Hub turns your entire GitHub org into an interactive visualization — embeddable in your README with one line of code.
+      </p>
+      <div class="signals">
+        <div class="sig-lbl">what you see</div>
+        <div class="sig"><span class="sig-arrow">→</span>All repos at a glance · by topic, language, or activity</div>
+        <div class="sig"><span class="sig-arrow">→</span>Health scores · active vs stale · star counts</div>
+        <div class="sig"><span class="sig-arrow">→</span>Auto-generated iframe embed code for README</div>
+        <div class="sig"><span class="sig-arrow">→</span>URL params <code style="font-family:'JetBrains Mono',monospace;font-size:.85em;color:var(--lav-dim)">?org=yourorg</code> for direct-link sharing</div>
       </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:#584870;margin-bottom:8px;line-height:1.9">
-        <span style="color:#4d807f">{</span><br>
-        &nbsp;&nbsp;<span style="color:#cab1df">"label"</span>: <span style="color:#e0a060">"org/repo"</span>,<br>
-        &nbsp;&nbsp;<span style="color:#cab1df">"clusters"</span>: [...],<br>
-        &nbsp;&nbsp;<span style="color:#cab1df">"items"</span>: [...]<br>
-        <span style="color:#4d807f">}</span>
-      </div>
-      <a href="https://github.com/blackmath88/github-atlas/blob/main/CONTRIBUTING.md" target="_blank" style="
-        display:block;padding:7px 10px;border:1px solid rgba(77,128,127,.35);border-radius:6px;
-        background:rgba(77,128,127,.1);color:#4d807f;font-size:10px;font-weight:700;
-        text-decoration:none;text-align:center;font-family:'JetBrains Mono',monospace;
-        transition:all .15s;letter-spacing:.03em
-      " onmouseover="this.style.background='rgba(77,128,127,.22)'" onmouseout="this.style.background='rgba(77,128,127,.1)'">
-        ↗ Contribution guide
+      <a href="repo-hub.html" class="head-btn">
+        <span>Launch Hub</span><span class="arr">→</span>
       </a>
     </div>
 
   </div>
+</section>
+
+<!-- ─── QUOTE ─── -->
+<div class="quote-section">
+  <blockquote>
+    "GitHub's chaos isn't the problem.<br/>
+    Not having a <em>map</em> is."
+  </blockquote>
+  <p>
+    The AI hype created a new class of GitHub users — people arriving from YouTube, LinkedIn, and ChatGPT who need 
+    intent-first navigation, not repository-first exploration. Atlas is the translation layer between what people want 
+    to accomplish and what GitHub actually contains.
+  </p>
 </div>
 
-<!-- ══════════════════
-     CENTER
-══════════════════ -->
-<div class="center">
-  <div class="hud"><span class="hud-dot"></span><span id="hudTxt">drag · click · explore</span></div>
-  <svg id="viz"></svg>
-</div>
+<!-- ─── WHY ─── -->
+<section class="why-section" id="why">
+  <div class="s-eye">Why it works</div>
+  <h2 class="s-title" style="margin-bottom:44px">Built on three beliefs</h2>
 
-<!-- ══════════════════
-     RIGHT PANEL
-══════════════════ -->
-<div class="panel right">
-  <div class="p-hdr">
-    <div class="eyebrow">repository</div>
-    <h1 id="dName">Select a repo</h1>
-    <div class="sub" id="dSub">Click any node to learn more &amp; get started.</div>
-  </div>
-  <div class="scroll" id="dPane">
-    <div style="height:10px"></div>
-    <div class="hint-txt">
-      <strong>Pick a persona</strong> to filter what's relevant to you.<br><br>
-      <strong>Click intent clusters</strong> in the left panel to focus the map.<br><br>
-      <strong>Click any repo</strong> to see what it does and how to get started.<br><br>
-      <strong>🌲 Dark Forest</strong> hides sensitive/leaked prompt collections by default. Toggle to reveal.
+  <div class="why-grid">
+    <div class="why-card">
+      <span class="why-icon">🗺️</span>
+      <h3>Visual first, list never</h3>
+      <p>D3-powered force graphs. Drag, zoom, click. Complex ecosystems become visible at a glance instead of scrollable infinite lists.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">⚡</span>
+      <h3>Zero setup</h3>
+      <p>Static HTML + D3. No build process, no npm, no backend. Clone and open. Works on GitHub Pages anywhere. Demo data always included.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">🔐</span>
+      <h3>Privacy first</h3>
+      <p>All processing happens client-side. Your token never leaves your browser. No analytics, no tracking, no data collection. Ever.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">📊</span>
+      <h3>Real data, live</h3>
+      <p>GitHub API integration. Analyze actual organizations. Optional token for 5,000 req/hr. See what's really there, not what was last documented.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">📱</span>
+      <h3>Embed-native</h3>
+      <p>Hub generates iframe code automatically. One paste and your org has an interactive map in its README. URL params enable deep linking.</p>
+    </div>
+    <div class="why-card">
+      <span class="why-icon">🔨</span>
+      <h3>Built to be forked</h3>
+      <p>Intentionally simple. Each head is a single HTML file. Fork, brand, deploy. No lock-in. Designed for the community to extend.</p>
     </div>
   </div>
-</div>
+</section>
 
-</div>
+<!-- ─── CONTRIBUTE ─── -->
+<section style="padding:60px 0 0" id="contribute">
+  <div class="s-eye">Open architecture</div>
+  <h2 class="s-title" style="margin-bottom:16px">Curated maps, by anyone</h2>
+  <p style="font-size:.97em;color:var(--txt-d);max-width:600px;margin-bottom:44px;line-height:1.82">
+    Navigator's L2 drill-down is designed to be extended. Any GitHub repo can become an interactive explorable map — drop a JSON config in <code style="font-family:'JetBrains Mono',monospace;font-size:.88em;color:var(--lavender);background:rgba(110,79,132,.12);padding:2px 7px;border-radius:3px">/curated/</code> and open a PR.
+  </p>
 
-<script>
-/* ═══════════════════════════════════════════════════════
-   CURATED PROMPT LIBRARY DATA
-═══════════════════════════════════════════════════════ */
-const REPOS = [
-  // Official
-  {id:'r1',name:'openai/openai-cookbook',stars:60000,desc:'Official recipes and examples from OpenAI. Best starting point for GPT usage.',url:'https://github.com/openai/openai-cookbook',trust:'official',clusters:['getting-started','api-usage'],language:'Jupyter',personas:['explorer','builder']},
-  {id:'r2',name:'anthropics/anthropic-cookbook',stars:8200,desc:'Anthropic\'s official examples and guides for Claude.',url:'https://github.com/anthropics/anthropic-cookbook',trust:'official',clusters:['getting-started','api-usage'],language:'Jupyter',personas:['explorer','builder']},
-  {id:'r3',name:'microsoft/promptflow',stars:9100,desc:'Build and deploy production-grade LLM apps. Microsoft\'s official tool.',url:'https://github.com/microsoft/promptflow',trust:'official',clusters:['production','workflow'],language:'Python',personas:['builder','org']},
-  {id:'r4',name:'google-deepmind/gemma',stars:11400,desc:'Gemma open model weights and examples by Google DeepMind.',url:'https://github.com/google-deepmind/gemma',trust:'official',clusters:['models','getting-started'],language:'Python',personas:['builder','explorer']},
-  // Community — frameworks
-  {id:'r5',name:'langchain-ai/langchain',stars:91000,desc:'The most popular framework for building LLM-powered applications.',url:'https://github.com/langchain-ai/langchain',trust:'community',clusters:['frameworks','workflow'],language:'Python',personas:['builder','org']},
-  {id:'r6',name:'run-llama/llama_index',stars:36000,desc:'Framework for connecting LLMs to your data. RAG made simple.',url:'https://github.com/run-llama/llama_index',trust:'community',clusters:['frameworks','rag'],language:'Python',personas:['builder','org']},
-  {id:'r7',name:'hwchase17/langchainjs',stars:12000,desc:'LangChain for JavaScript/TypeScript developers.',url:'https://github.com/langchain-ai/langchainjs',trust:'community',clusters:['frameworks','api-usage'],language:'TypeScript',personas:['builder']},
-  {id:'r8',name:'microsoft/autogen',stars:32000,desc:'Multi-agent conversation framework. Build teams of AI agents.',url:'https://github.com/microsoft/autogen',trust:'official',clusters:['agents','workflow'],language:'Python',personas:['builder','org']},
-  // Community — prompt collections
-  {id:'r9',name:'f/awesome-chatgpt-prompts',stars:113000,desc:'The definitive community collection of ChatGPT prompts. Browse hundreds of use cases.',url:'https://github.com/f/awesome-chatgpt-prompts',trust:'community',clusters:['prompt-collections','getting-started'],language:'CSV',personas:['explorer','prompter']},
-  {id:'r10',name:'dair-ai/Prompt-Engineering-Guide',stars:49000,desc:'Comprehensive guide to prompt engineering techniques.',url:'https://github.com/dair-ai/Prompt-Engineering-Guide',trust:'community',clusters:['prompt-engineering','getting-started'],language:'Markdown',personas:['prompter','explorer']},
-  {id:'r11',name:'brexhq/prompt-engineering',stars:8100,desc:'Brex\'s internal guide to prompt engineering. Real-world, opinionated, excellent.',url:'https://github.com/brexhq/prompt-engineering',trust:'community',clusters:['prompt-engineering'],language:'Markdown',personas:['prompter','org']},
-  {id:'r12',name:'promptslab/Awesome-Prompt-Engineering',stars:3900,desc:'Curated resources, papers, and techniques for prompt engineering.',url:'https://github.com/promptslab/Awesome-Prompt-Engineering',trust:'community',clusters:['prompt-engineering','prompt-collections'],language:'Markdown',personas:['prompter']},
-  // RAG / data
-  {id:'r13',name:'chroma-core/chroma',stars:15000,desc:'The open-source embedding database. Essential for RAG pipelines.',url:'https://github.com/chroma-core/chroma',trust:'community',clusters:['rag','production'],language:'Python',personas:['builder']},
-  {id:'r14',name:'jerryjliu/llama_index',stars:36000,desc:'Data framework for LLM applications — search, summarize, chat with your docs.',url:'https://github.com/run-llama/llama_index',trust:'community',clusters:['rag','frameworks'],language:'Python',personas:['builder','org']},
-  // Agents
-  {id:'r15',name:'Significant-Gravitas/AutoGPT',stars:168000,desc:'The original autonomous AI agent. Loops, plans, executes tasks end-to-end.',url:'https://github.com/Significant-Gravitas/AutoGPT',trust:'community',clusters:['agents','getting-started'],language:'Python',personas:['explorer','builder']},
-  {id:'r16',name:'geekan/MetaGPT',stars:44000,desc:'Multi-agent software company in Python. Roles: CEO, CTO, developer agents.',url:'https://github.com/geekan/MetaGPT',trust:'community',clusters:['agents','workflow'],language:'Python',personas:['builder','org']},
-  // Sensitive
-  {id:'r17',name:'linexjlin/GPTs',stars:22000,desc:'Leaked system prompts from popular GPTs. Educational look at real-world prompting.',url:'https://github.com/linexjlin/GPTs',trust:'sensitive',clusters:['prompt-collections'],language:'Markdown',personas:['prompter'],dark_forest:true},
-  {id:'r18',name:'LouisShark/chatgpt_system_prompt',stars:9100,desc:'Collection of leaked ChatGPT & GPT system prompts. Research purposes.',url:'https://github.com/LouisShark/chatgpt_system_prompt',trust:'sensitive',clusters:['prompt-collections'],language:'Markdown',personas:['prompter'],dark_forest:true},
-  // Tools / production
-  {id:'r19',name:'BerriAI/litellm',stars:13000,desc:'Call any LLM using OpenAI format. One interface for 100+ models.',url:'https://github.com/BerriAI/litellm',trust:'community',clusters:['production','api-usage'],language:'Python',personas:['builder','org']},
-  {id:'r20',name:'ggerganov/llama.cpp',stars:66000,desc:'Run LLMs locally in C++. The engine behind local AI.',url:'https://github.com/ggerganov/llama.cpp',trust:'community',clusters:['models','production'],language:'C++',personas:['builder']},
-];
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:16px">
 
-const CLUSTERS = [
-  {id:'getting-started', label:'🚀 Getting Started', color:'#f0a830'},
-  {id:'prompt-engineering', label:'✍️ Prompt Engineering', color:'#f0c050'},
-  {id:'prompt-collections', label:'📚 Collections', color:'#e08020'},
-  {id:'frameworks', label:'🏗️ Frameworks', color:'#c06020'},
-  {id:'agents', label:'🤖 Agents', color:'#d08030'},
-  {id:'rag', label:'🔍 RAG', color:'#a07040'},
-  {id:'workflow', label:'⚙️ Workflow', color:'#b06030'},
-  {id:'api-usage', label:'🔌 API Usage', color:'#c08040'},
-  {id:'production', label:'🚢 Production', color:'#905030'},
-  {id:'models', label:'🧠 Models', color:'#d09040'},
-];
-
-const TRUST_COLORS = {official:'#f0a830', community:'#60c060', sensitive:'#a060c0'};
-const PERSONA_CLUSTERS = {
-  explorer:['getting-started','prompt-collections','agents','models'],
-  builder:['frameworks','api-usage','rag','production','agents'],
-  prompter:['prompt-engineering','prompt-collections','getting-started'],
-  org:['frameworks','production','workflow','agents'],
-};
-
-/* ═══════════════════════════════════════════════════════
-   STATE
-═══════════════════════════════════════════════════════ */
-let CURRENT_DATA = null;
-let sim = null, nodeSel = null, linkSel = null;
-let selId = null;
-let activePersona = 'explorer';
-let activeClusters = new Set();
-let darkForest = true; // hidden by default
-let officialOnly = false;
-
-/* ═══════════════════════════════════════════════════════
-   BUILD CLUSTER CHIPS
-═══════════════════════════════════════════════════════ */
-function buildClusterChips() {
-  const el = document.getElementById('clusterChips');
-  el.innerHTML = '';
-  CLUSTERS.forEach(c => {
-    const chip = document.createElement('div');
-    chip.className = 'cluster-chip';
-    chip.dataset.cluster = c.id;
-    chip.textContent = c.label;
-    chip.onclick = () => toggleCluster(c.id);
-    el.appendChild(chip);
-  });
-}
-
-function toggleCluster(id) {
-  if (activeClusters.has(id)) activeClusters.delete(id);
-  else activeClusters.add(id);
-  document.querySelectorAll('.cluster-chip').forEach(ch => {
-    ch.classList.toggle('active', activeClusters.has(ch.dataset.cluster));
-  });
-  applyFilters();
-  if (nodeSel) selectNode(null);
-}
-
-/* ═══════════════════════════════════════════════════════
-   PERSONA
-═══════════════════════════════════════════════════════ */
-function setPersona(el) {
-  document.querySelectorAll('.persona').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  activePersona = el.dataset.persona;
-  // Auto-highlight relevant clusters
-  activeClusters = new Set(PERSONA_CLUSTERS[activePersona] || []);
-  document.querySelectorAll('.cluster-chip').forEach(ch => {
-    ch.classList.toggle('active', activeClusters.has(ch.dataset.cluster));
-  });
-  applyFilters();
-  const names = {explorer:'Start here — explore by topic.',builder:'Focus on frameworks & tools.',prompter:'Prompt collections & techniques.',org:'Frameworks, workflow & production.'};
-  setHudText(names[activePersona] || 'Explore the map');
-}
-
-/* ═══════════════════════════════════════════════════════
-   BUILD GRAPH DATA
-═══════════════════════════════════════════════════════ */
-function buildData() {
-  const nodes = [];
-  const links = [];
-  const nodeMap = new Map();
-
-  // Cluster anchor nodes
-  CLUSTERS.forEach(c => {
-    nodes.push({id:`cluster-${c.id}`, type:'cluster', name:c.label, clusterId:c.id, color:c.color, fx:null, fy:null});
-    nodeMap.set(`cluster-${c.id}`, nodes.length-1);
-  });
-
-  // Repo nodes
-  REPOS.forEach(r => {
-    nodes.push({
-      id:r.id, type:'repo', name:r.name.split('/')[1],
-      fullName:r.name, stars:r.stars, desc:r.desc,
-      url:r.url, trust:r.trust, clusters:r.clusters,
-      language:r.language, personas:r.personas,
-      dark_forest:r.dark_forest||false,
-    });
-    nodeMap.set(r.id, nodes.length-1);
-    // Link to primary cluster
-    if (r.clusters[0]) {
-      links.push({source:r.id, target:`cluster-${r.clusters[0]}`, kind:'in-cluster'});
-    }
-    // Link to secondary clusters with weaker force
-    r.clusters.slice(1).forEach(cid => {
-      links.push({source:r.id, target:`cluster-${cid}`, kind:'soft-cluster'});
-    });
-  });
-
-  CURRENT_DATA = {nodes, links};
-  updateStats();
-}
-
-/* ═══════════════════════════════════════════════════════
-   RENDER
-═══════════════════════════════════════════════════════ */
-function renderGraph() {
-  const ctr = document.querySelector('.center');
-  const W = ctr.clientWidth, H = ctr.clientHeight;
-
-  const svgEl = d3.select('#viz');
-  svgEl.selectAll('*').remove();
-
-  const g = svgEl.append('g');
-  const zoom = d3.zoom().scaleExtent([.08,4]).on('zoom', ev => g.attr('transform', ev.transform));
-  svgEl.call(zoom);
-
-  // Pre-position cluster nodes in a circle
-  const R = Math.min(W, H) * 0.32;
-  CLUSTERS.forEach((c, i) => {
-    const angle = (i / CLUSTERS.length) * Math.PI * 2 - Math.PI/2;
-    const n = CURRENT_DATA.nodes.find(n => n.id === `cluster-${c.id}`);
-    if (n) { n.x = W/2 + R * Math.cos(angle); n.y = H/2 + R * Math.sin(angle); }
-  });
-
-  sim = d3.forceSimulation(CURRENT_DATA.nodes)
-    .force('link', d3.forceLink(CURRENT_DATA.links).id(d=>d.id)
-      .distance(d => d.kind==='in-cluster' ? 70 : 120)
-      .strength(d => d.kind==='in-cluster' ? .6 : .15))
-    .force('charge', d3.forceManyBody().strength(d => d.type==='cluster' ? -300 : -80))
-    .force('center', d3.forceCenter(W/2, H/2).strength(.05))
-    .force('collide', d3.forceCollide(d => d.type==='cluster' ? 30 : 14).iterations(2));
-
-  // Fix cluster nodes in place
-  CURRENT_DATA.nodes.filter(n=>n.type==='cluster').forEach(n => {
-    n.fx = n.x; n.fy = n.y;
-  });
-
-  linkSel = g.append('g').selectAll('line').data(CURRENT_DATA.links).join('line')
-    .attr('stroke', d => d.kind==='in-cluster' ? 'rgba(240,168,48,.2)' : 'rgba(240,168,48,.06)')
-    .attr('stroke-width', d => d.kind==='in-cluster' ? 1.2 : .5)
-    .attr('stroke-linecap','round');
-
-  nodeSel = g.append('g').selectAll('g').data(CURRENT_DATA.nodes).join('g')
-    .attr('class', d => `g-node${d.type==='cluster'?' cluster-node':''}`)
-    .call(d3.drag()
-      .on('start', ev => { if(!ev.active) sim.alphaTarget(.3).restart(); if(ev.subject.type!=='cluster'){ev.subject.fx=ev.subject.x;ev.subject.fy=ev.subject.y;} })
-      .on('drag', ev => { if(ev.subject.type!=='cluster'){ev.subject.fx=ev.x;ev.subject.fy=ev.y;} })
-      .on('end', ev => { if(!ev.active) sim.alphaTarget(0); if(ev.subject.type!=='cluster'){ev.subject.fx=null;ev.subject.fy=null;} })
-    );
-
-  // Cluster glow rings
-  nodeSel.filter(d=>d.type==='cluster').append('circle')
-    .attr('r',32).attr('fill',d=>d.color).attr('fill-opacity',.06)
-    .attr('stroke','none');
-  nodeSel.filter(d=>d.type==='cluster').append('circle')
-    .attr('r',24).attr('fill',d=>d.color).attr('fill-opacity',.1)
-    .attr('stroke',d=>d.color).attr('stroke-width',.8).attr('stroke-opacity',.3)
-    .style('animation','pulse-cluster 3s ease-in-out infinite')
-    .style('animation-delay',(_,i)=>i*.3+'s');
-
-  nodeSel.append('circle')
-    .attr('class','main-circle')
-    .attr('r', d => d.type==='cluster' ? 14 : Math.max(5, Math.min(13, Math.log(d.stars||1) * 1.2)))
-    .attr('fill', d => {
-      if (d.type==='cluster') return d.color;
-      return TRUST_COLORS[d.trust]||'#808080';
-    })
-    .attr('fill-opacity', d => d.type==='cluster' ? .9 : .85)
-    .attr('stroke', d => d.type==='cluster' ? d.color : (TRUST_COLORS[d.trust]||'#808080'))
-    .attr('stroke-width', d => d.type==='cluster' ? 1.5 : 1.2)
-    .attr('stroke-opacity', .85);
-
-  nodeSel.append('text')
-    .attr('dx', d => (d.type==='cluster' ? 16 : Math.max(5, Math.min(13, Math.log(d.stars||1)*1.2))) + 4)
-    .attr('dy', 3)
-    .attr('fill', d => d.type==='cluster' ? d.color : '#c8a878')
-    .attr('font-weight', d => d.type==='cluster' ? '600' : '400')
-    .text(d => {
-      if (d.type==='cluster') return d.name;
-      const n = d.fullName||d.name;
-      return n.length > 24 ? n.slice(0,22)+'…' : n;
-    });
-
-  const tip = document.getElementById('tip');
-  nodeSel
-    .on('mousemove', (ev, d) => {
-      if (d.type==='cluster') { tip.style.display='none'; return; }
-      document.getElementById('tn').textContent = d.fullName||d.name;
-      document.getElementById('tm').textContent = `${d.trust} · ⭐ ${(d.stars||0).toLocaleString()}\n${d.language||''}`;
-      tip.style.display='block';
-      tip.style.left=(ev.clientX+14)+'px';
-      tip.style.top=(ev.clientY-12)+'px';
-    })
-    .on('mouseleave', () => tip.style.display='none')
-    .on('click', (ev,d) => { ev.stopPropagation(); if(d.type!=='cluster') selectNode(d.id); });
-
-  svgEl.on('click', () => selectNode(null));
-
-  sim.on('tick', () => {
-    linkSel.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
-    nodeSel.attr('transform',d=>`translate(${d.x},${d.y})`);
-  });
-
-  applyFilters();
-}
-
-/* ═══════════════════════════════════════════════════════
-   FILTERS
-═══════════════════════════════════════════════════════ */
-function repoVisible(d) {
-  if (d.type === 'cluster') return true;
-  if (darkForest && d.dark_forest) return false;
-  if (officialOnly && d.trust !== 'official') return false;
-  if (activeClusters.size > 0) {
-    if (!d.clusters.some(c => activeClusters.has(c))) return false;
-  }
-  return true;
-}
-
-function applyFilters() {
-  if (!nodeSel) return;
-  const nb = nodeById();
-  nodeSel.style('display', d => repoVisible(d) ? null : 'none');
-  linkSel.style('display', d => {
-    const s = nb.get(d.source.id||d.source);
-    const t = nb.get(d.target.id||d.target);
-    return s && t && repoVisible(s) && repoVisible(t) ? null : 'none';
-  });
-  updateStats();
-}
-
-function updateStats() {
-  if (!CURRENT_DATA) return;
-  const visible = CURRENT_DATA.nodes.filter(n => n.type==='repo' && repoVisible(n));
-  document.getElementById('sN').textContent = visible.length;
-  document.getElementById('sC').textContent = activeClusters.size || CLUSTERS.length;
-  document.getElementById('sS').textContent = visible.filter(n=>n.trust==='official').length;
-}
-
-/* ═══════════════════════════════════════════════════════
-   SELECTION
-═══════════════════════════════════════════════════════ */
-function nodeById() { return new Map(CURRENT_DATA.nodes.map(n=>[n.id,n])); }
-
-function selectNode(id) {
-  selId = id;
-  if (!id) {
-    nodeSel.classed('dim',false).classed('focus',false);
-    linkSel.style('display', d => {
-      const nb = nodeById();
-      const s=nb.get(d.source.id||d.source), t=nb.get(d.target.id||d.target);
-      return s&&t&&repoVisible(s)&&repoVisible(t) ? null : 'none';
-    });
-    renderDetailDefault();
-    return;
-  }
-  const node = nodeById().get(id);
-  if (!node) return;
-
-  const nbSet = new Set([id]);
-  CURRENT_DATA.links.forEach(l => {
-    const s=l.source.id||l.source, t=l.target.id||l.target;
-    if (s===id) nbSet.add(t);
-    if (t===id) nbSet.add(s);
-  });
-
-  nodeSel.classed('dim', d=>!nbSet.has(d.id)).classed('focus', d=>nbSet.has(d.id));
-  linkSel.style('display', d => {
-    const s=d.source.id||d.source, t=d.target.id||d.target;
-    return s===id||t===id ? null : 'none';
-  });
-  renderDetail(node);
-}
-
-/* ═══════════════════════════════════════════════════════
-   DETAIL PANEL
-═══════════════════════════════════════════════════════ */
-function renderDetailDefault() {
-  document.getElementById('dName').textContent = 'Select a repo';
-  document.getElementById('dSub').textContent = 'Click any node to learn more & get started.';
-  document.getElementById('dPane').innerHTML = `<div style="height:10px"></div><div class="hint-txt">
-    <strong>Pick a persona</strong> to highlight what's relevant.<br><br>
-    <strong>Click intent clusters</strong> to filter by use case.<br><br>
-    <strong>Color tells you trust:</strong><br>
-    🟡 Gold = official source<br>
-    🟢 Green = strong community<br>
-    🟣 Purple = sensitive / research only
-  </div>`;
-}
-
-function renderDetail(n) {
-  document.getElementById('dName').textContent = n.fullName||n.name;
-  document.getElementById('dSub').textContent = `${n.trust} · ${(n.stars||0).toLocaleString()} stars`;
-
-  const trustColor = TRUST_COLORS[n.trust]||'#808080';
-  const clusterLabels = (n.clusters||[]).map(cid => {
-    const c = CLUSTERS.find(cl=>cl.id===cid);
-    return c ? c.label : cid;
-  }).join(', ');
-
-  let html = `<div class="d-hero">
-    <div class="d-typelbl">${esc(n.trust)}</div>
-    <div class="d-name">${esc(n.fullName||n.name)}</div>
-    <div class="d-sub">${esc(n.language||'')} · ${(n.stars||0).toLocaleString()} ⭐</div>
-    <div class="badges">
-      <span class="badge" style="border-color:${trustColor}55;color:${trustColor}"><span class="bd" style="background:${trustColor}"></span>${esc(n.trust)}</span>
-      ${n.dark_forest ? '<span class="badge" style="border-color:#a060c055;color:#a060c0">🌲 sensitive</span>' : ''}
+    <div style="
+      padding:28px 26px;
+      background:rgba(14,10,22,.7);border:1px solid var(--bd);border-radius:10px;
+      transition:all .22s;position:relative;
+    " onmouseover="this.style.borderColor='rgba(110,79,132,.35)';this.style.transform='translateX(4px)'"
+       onmouseout="this.style.borderColor='var(--bd)';this.style.transform='none'">
+      <div style="font-size:1.4em;margin-bottom:12px">📦</div>
+      <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.1em;font-weight:700;letter-spacing:-.02em;color:var(--near-white);margin-bottom:8px">Drop a JSON config</h3>
+      <p style="font-size:.88em;color:var(--txt-d);line-height:1.78">Create a file in <code style="font-family:'JetBrains Mono',monospace;font-size:.9em;color:var(--lav-dim)">/curated/</code> defining your clusters and items. Navigator loads it automatically when users drill into that repo.</p>
     </div>
-  </div>`;
 
-  html += `<div class="kv">
-    <div class="kk">full name</div><div class="vv"><a href="${n.url}" target="_blank">${esc(n.fullName)}</a></div>
-    <div class="kk">language</div><div class="vv">${esc(n.language||'—')}</div>
-    <div class="kk">stars</div><div class="vv">${(n.stars||0).toLocaleString()}</div>
-    <div class="kk">clusters</div><div class="vv" style="font-size:9px">${esc(clusterLabels)}</div>
-  </div>`;
+    <div style="
+      padding:28px 26px;
+      background:rgba(14,10,22,.7);border:1px solid var(--bd);border-radius:10px;
+      transition:all .22s;position:relative;
+    " onmouseover="this.style.borderColor='rgba(77,128,127,.35)';this.style.transform='translateX(4px)'"
+       onmouseout="this.style.borderColor='var(--bd)';this.style.transform='none'">
+      <div style="font-size:1.4em;margin-bottom:12px">🤖</div>
+      <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.1em;font-weight:700;letter-spacing:-.02em;color:var(--near-white);margin-bottom:8px">AI-assisted curation</h3>
+      <p style="font-size:.88em;color:var(--txt-d);line-height:1.78">Use the LLM workflow in <code style="font-family:'JetBrains Mono',monospace;font-size:.9em;color:var(--lav-dim)">CONTRIBUTING.md</code> to generate a config from any README in minutes. The hard work is reading — the JSON is boilerplate.</p>
+    </div>
 
-  html += `<div class="d-sec"><h3>What it is</h3><p>${esc(n.desc)}</p></div>`;
+    <div style="
+      padding:28px 26px;
+      background:rgba(14,10,22,.7);border:1px solid var(--bd);border-radius:10px;
+      transition:all .22s;position:relative;
+    " onmouseover="this.style.borderColor='rgba(202,177,223,.25)';this.style.transform='translateX(4px)'"
+       onmouseout="this.style.borderColor='var(--bd)';this.style.transform='none'">
+      <div style="font-size:1.4em;margin-bottom:12px">🔍</div>
+      <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.1em;font-weight:700;letter-spacing:-.02em;color:var(--near-white);margin-bottom:8px">Instant discovery</h3>
+      <p style="font-size:.88em;color:var(--txt-d);line-height:1.78">Contributed maps show a <span style="color:#4d807f">teal dot</span> badge on the graph node. Users can drill inside to explore the repo's structure as a navigable category map with keyword filtering.</p>
+    </div>
 
-  // Persona-specific advice
-  const advice = {
-    explorer: 'Start by browsing the README. You don\'t need to code — just read the examples and use them in ChatGPT or Claude.',
-    builder: 'Clone the repo, install dependencies, and run the examples. Then adapt to your use case.',
-    prompter: 'Browse the prompt collections for patterns you can adopt. Copy, modify, test.',
-    org: 'Review the license, maintenance status, and community activity before adopting at scale.',
-  };
-  html += `<div class="d-sec"><h3>How to start (${activePersona})</h3><p>${advice[activePersona]||'Click through to GitHub and explore.'}</p></div>`;
+  </div>
 
-  html += `<div class="d-sec"><a href="${n.url}" target="_blank" class="start-btn">↗ Open on GitHub</a></div>`;
+  <div style="
+    padding:20px 28px;
+    background:linear-gradient(135deg,rgba(77,128,127,.1),rgba(110,79,132,.08));
+    border:1px solid rgba(77,128,127,.25);border-radius:10px;
+    display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
+  ">
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:3px;text-transform:uppercase;color:#4d807f;margin-bottom:6px">Schema</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#584870;line-height:2">
+        <span style="color:#4d807f">{</span>&nbsp;
+        <span style="color:#cab1df">"label"</span>: <span style="color:#e0a060">"org/repo"</span>,&nbsp;
+        <span style="color:#cab1df">"description"</span>: <span style="color:#e0a060">"..."</span>,&nbsp;
+        <span style="color:#cab1df">"clusters"</span>: <span style="color:#4d807f">[{id, label, color, keywords}]</span>,&nbsp;
+        <span style="color:#cab1df">"items"</span>: <span style="color:#4d807f">[{name, prompt?, clusterId}]</span>&nbsp;
+        <span style="color:#4d807f">}</span>
+      </div>
+    </div>
+    <a href="https://github.com/blackmath88/github-atlas/blob/main/CONTRIBUTING.md" target="_blank" style="
+      padding:10px 20px;border:1px solid rgba(77,128,127,.5);border-radius:6px;
+      background:rgba(77,128,127,.14);color:#6aa8a7;
+      font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:600;letter-spacing:.4px;
+      text-decoration:none;white-space:nowrap;transition:all .2s
+    " onmouseover="this.style.background='rgba(77,128,127,.28)'" onmouseout="this.style.background='rgba(77,128,127,.14)'">
+      ↗ CONTRIBUTING.md
+    </a>
+  </div>
+</section>
 
-  document.getElementById('dPane').innerHTML = html;
-}
+<!-- ─── FINAL CTA ─── -->
+<section class="cta-section" id="start">
+  <h2>Pick a head.<br/>Start now.</h2>
+  <p>No signup. No waiting. Each tool opens instantly with demo data already loaded.</p>
+  <div class="cta-row">
+    <a href="navigator.html" class="tool-pill nav" style="padding:14px 28px">⚡ Radarr — Analyze risk →</a>
+    <a href="launchpad.html" class="tool-pill launch" style="padding:14px 28px">🗺️ Navigator — Discover GitHub →</a>
+    <a href="repo-hub.html" class="tool-pill hub" style="padding:14px 28px">🏢 Hub — Map your org →</a>
+  </div>
+  <a href="https://github.com/blackmath88/github-atlas" target="_blank" class="cta-gh">
+    ⭐ star on github · blackmath88/github-atlas
+  </a>
+</section>
 
-/* ═══════════════════════════════════════════════════════
-   UI HELPERS
-═══════════════════════════════════════════════════════ */
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+</div><!-- /wrapper -->
 
-function setHudText(t) { document.getElementById('hudTxt').textContent = t; }
-
-let _toastTimer = null;
-function toast(msg) {
-  const ex = document.querySelector('.toast');
-  if (ex) ex.remove();
-  const el = document.createElement('div');
-  el.className = 'toast entering';
-  el.textContent = msg;
-  document.body.appendChild(el);
-  clearTimeout(_toastTimer);
-  _toastTimer = setTimeout(() => {
-    el.classList.remove('entering'); el.classList.add('leaving');
-    setTimeout(() => el.remove(), 280);
-  }, 3000);
-}
-
-/* ═══════════════════════════════════════════════════════
-   SEARCH
-═══════════════════════════════════════════════════════ */
-function doSearch(query) {
-  if (!query) { activeClusters = new Set(); applyFilters(); return; }
-  const q = query.toLowerCase();
-  // Highlight repos matching query
-  if (!nodeSel) return;
-  const matches = new Set(CURRENT_DATA.nodes
-    .filter(n => n.type==='repo' && (
-      n.name.toLowerCase().includes(q) ||
-      (n.fullName||'').toLowerCase().includes(q) ||
-      (n.desc||'').toLowerCase().includes(q) ||
-      (n.clusters||[]).some(c=>c.includes(q))
-    )).map(n=>n.id));
-
-  if (matches.size === 0) { toast('No matches found.'); return; }
-  nodeSel.classed('dim', d => d.type==='repo' && !matches.has(d.id)).classed('focus', d=>matches.has(d.id));
-  toast(`${matches.size} match${matches.size!==1?'es':''} found`);
-  setHudText(`search: "${query}"`);
-}
-
-/* ═══════════════════════════════════════════════════════
-   EVENTS
-═══════════════════════════════════════════════════════ */
-document.getElementById('searchBtn').addEventListener('click', () => {
-  const q = document.getElementById('queryInput').value.trim();
-  doSearch(q);
-});
-document.getElementById('queryInput').addEventListener('keypress', ev => {
-  if (ev.key==='Enter') document.getElementById('searchBtn').click();
-});
-
-document.getElementById('btnDarkForest').addEventListener('click', function() {
-  darkForest = !darkForest;
-  this.classList.toggle('on', !darkForest); // "on" = dark forest DISABLED = showing sensitive
-  applyFilters();
-  toast(darkForest ? '🌲 Dark Forest: sensitive repos hidden' : '👁 Sensitive repos now visible');
-});
-// Start with dark forest active (button shows as off = default)
-document.getElementById('btnDarkForest').classList.remove('on');
-
-document.getElementById('btnOfficialOnly').addEventListener('click', function() {
-  officialOnly = !officialOnly;
-  this.classList.toggle('on', officialOnly);
-  applyFilters();
-  setHudText(officialOnly ? 'official repos only' : 'drag · click · explore');
-});
-
-document.getElementById('btnReset').addEventListener('click', () => {
-  activeClusters = new Set();
-  officialOnly = false;
-  darkForest = true;
-  document.querySelectorAll('.cluster-chip').forEach(ch=>ch.classList.remove('active'));
-  document.querySelectorAll('.persona').forEach(p=>p.classList.remove('active'));
-  document.querySelector('[data-persona="explorer"]').classList.add('active');
-  activePersona = 'explorer';
-  ['btnOfficialOnly','btnDarkForest'].forEach(id=>document.getElementById(id).classList.remove('on'));
-  document.getElementById('queryInput').value='';
-  selectNode(null);
-  applyFilters();
-  d3.select('#viz').transition().duration(400).call(d3.zoom().transform, d3.zoomIdentity);
-  setHudText('drag · click · explore');
-});
-
-/* ═══════════════════════════════════════════════════════
-   BOOT
-═══════════════════════════════════════════════════════ */
-buildClusterChips();
-buildData();
-renderGraph();
-// Default persona chips
-activeClusters = new Set(PERSONA_CLUSTERS['explorer']);
-document.querySelectorAll('.cluster-chip').forEach(ch => {
-  ch.classList.toggle('active', activeClusters.has(ch.dataset.cluster));
-});
-</script>
-<footer style="position:fixed;bottom:0;left:0;right:0;z-index:50;
-  background:rgba(8,6,16,.9);border-top:1px solid rgba(110,79,132,.12);
-  backdrop-filter:blur(12px);padding:7px 28px;
-  display:flex;align-items:center;justify-content:center;">
-  <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.4px;color:#584870">
-    GitHub Atlas · Navigator — intent-first discovery for GitHub ·
-    <a href="https://github.com/blackmath88" style="color:#9d84b8;text-decoration:none">@blackmath88</a> ·
-    <a href="https://github.com/blackmath88/github-atlas/blob/main/LICENSE" style="color:#9d84b8;text-decoration:none">MIT licensed</a> ·
-    Client-side only
-  </span>
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="wrapper">
+    <div class="foot-inner">
+      <div class="foot-brand">
+        <div style="width:22px;height:22px;background:linear-gradient(135deg,var(--purple),var(--teal));clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)"></div>
+        GitHub Atlas
+      </div>
+      <div class="foot-links">
+        <a href="navigator.html" class="foot-link">Radarr</a>
+        <a href="launchpad.html" class="foot-link">Navigator</a>
+        <a href="repo-hub.html" class="foot-link">Hub</a>
+        <a href="https://github.com/blackmath88/github-atlas" target="_blank" class="foot-link">GitHub</a>
+        <a href="https://github.com/blackmath88/github-atlas/blob/main/CONTRIBUTING.md" target="_blank" class="foot-link">Contribute</a>
+        <a href="https://github.com/blackmath88/github-atlas/blob/main/LICENSE" target="_blank" class="foot-link">MIT</a>
+      </div>
+      <div class="foot-meta">GitHub Atlas · Interactive maps for GitHub's ecosystem. Analyze risk. Discover libraries. Showcase your org. · <a href="https://github.com/blackmath88" style="color:var(--lav-dim);text-decoration:none">Created by @blackmath88</a> · <a href="https://github.com/blackmath88/github-atlas/blob/main/LICENSE" style="color:var(--lav-dim);text-decoration:none">MIT licensed</a> · Client-side only</div>
+    </div>
+  </div>
 </footer>
 
 </body>
