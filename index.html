@@ -12,6 +12,7 @@
 <meta property="og:type" content="website"/>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><path d='M50 10 L90 30 L90 70 L50 90 L10 70 L10 30 Z' fill='%236e4f84' stroke='%234d807f' stroke-width='2'/></svg>">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 
 <style>
 
@@ -534,7 +535,49 @@ footer{
   .hero-orbit,.hero-orbit-2{display:none}
   .foot-inner{flex-direction:column}
   .foot-link{padding:6px 12px}
+  #trending-map{opacity:.18}
 }
+
+/* ─── TRENDING MAP ─── */
+#trending-map{
+  position:absolute;inset:0;width:100%;height:100%;
+  pointer-events:none;z-index:0;opacity:.38;
+}
+.trending-label{
+  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--teal-hi);
+  display:flex;align-items:center;gap:7px;
+  opacity:0;transition:opacity .6s ease;
+  margin-bottom:10px;position:relative;z-index:2;
+}
+.tl-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--teal-hi);flex-shrink:0;
+  animation:tl-pulse 2.4s ease-in-out infinite;
+}
+@keyframes tl-pulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.35;transform:scale(.65)}
+}
+#tm-tip{
+  position:fixed;display:none;
+  background:rgba(8,6,16,.96);
+  border:1px solid var(--border);
+  border-radius:8px;padding:9px 12px;
+  max-width:220px;font-size:11px;line-height:1.55;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+  backdrop-filter:blur(12px);z-index:300;
+  pointer-events:none;
+}
+#tm-tip .tn{font-weight:600;color:var(--lavender);display:block;margin-bottom:3px}
+#tm-tip .tm{color:var(--txt-d);font-family:'JetBrains Mono',monospace;font-size:9.5px}
+.g-node{cursor:pointer}
+.g-node text{
+  font-family:'JetBrains Mono',monospace;font-size:7px;
+  fill:rgba(202,177,223,.55);pointer-events:none;
+  opacity:0;transition:opacity .2s;
+}
+.g-node:hover text{opacity:1}
 </style>
 </head>
 <body>
@@ -559,10 +602,12 @@ footer{
 
 <!-- ─── HERO ─── -->
 <section class="hero">
+  <svg id="trending-map"></svg>
   <div class="hero-glow"></div>
   <div class="hero-orbit"></div>
   <div class="hero-orbit-2"></div>
 
+  <div class="trending-label" id="trendingLabel"><span class="tl-dot"></span><span>Live trending · <span id="trendingCount">0</span> repos</span></div>
   <div class="hero-eyebrow">Open source <span class="sep"></span> MIT <span class="sep"></span> No signup</div>
   <h1 class="hero-title">Navigate<br/>What You<br/>Build</h1>
   <div class="hero-sub">Three heads. One mission. Carry less weight.</div>
@@ -810,6 +855,158 @@ footer{
     </div>
   </div>
 </footer>
+
+<div id="tm-tip"><span class="tn"></span><span class="tm"></span></div>
+
+<script>
+(function(){
+  const SEED=[
+    {id:1,name:'react',full_name:'facebook/react',stargazers_count:220000,language:'JavaScript',html_url:'https://github.com/facebook/react'},
+    {id:2,name:'vue',full_name:'vuejs/vue',stargazers_count:207000,language:'JavaScript',html_url:'https://github.com/vuejs/vue'},
+    {id:3,name:'tensorflow',full_name:'tensorflow/tensorflow',stargazers_count:184000,language:'Python',html_url:'https://github.com/tensorflow/tensorflow'},
+    {id:4,name:'kubernetes',full_name:'kubernetes/kubernetes',stargazers_count:108000,language:'Go',html_url:'https://github.com/kubernetes/kubernetes'},
+    {id:5,name:'rust',full_name:'rust-lang/rust',stargazers_count:96000,language:'Rust',html_url:'https://github.com/rust-lang/rust'},
+    {id:6,name:'vscode',full_name:'microsoft/vscode',stargazers_count:162000,language:'TypeScript',html_url:'https://github.com/microsoft/vscode'},
+    {id:7,name:'llama.cpp',full_name:'ggerganov/llama.cpp',stargazers_count:68000,language:'C++',html_url:'https://github.com/ggerganov/llama.cpp'},
+    {id:8,name:'transformers',full_name:'huggingface/transformers',stargazers_count:130000,language:'Python',html_url:'https://github.com/huggingface/transformers'},
+    {id:9,name:'langchain',full_name:'langchain-ai/langchain',stargazers_count:92000,language:'Python',html_url:'https://github.com/langchain-ai/langchain'},
+    {id:10,name:'next.js',full_name:'vercel/next.js',stargazers_count:122000,language:'JavaScript',html_url:'https://github.com/vercel/next.js'},
+    {id:11,name:'pytorch',full_name:'pytorch/pytorch',stargazers_count:80000,language:'Python',html_url:'https://github.com/pytorch/pytorch'},
+    {id:12,name:'deno',full_name:'denoland/deno',stargazers_count:93000,language:'Rust',html_url:'https://github.com/denoland/deno'}
+  ];
+
+  function langColor(lang){
+    if(!lang)return'rgba(110,79,132,0.5)';
+    const l=lang.toLowerCase();
+    if(l==='javascript'||l==='typescript')return'#6e4f84';
+    if(l==='python')return'#4d807f';
+    if(l==='go'||l==='rust')return'#6aa8a7';
+    if(l==='java'||l==='kotlin')return'#cab1df';
+    if(l==='c'||l==='c++'||l==='c#')return'#9d84b8';
+    return'rgba(110,79,132,0.5)';
+  }
+
+  function buildLinks(nodes){
+    const links=[];
+    for(let i=0;i<nodes.length;i++){
+      for(let j=i+1;j<nodes.length;j++){
+        if(nodes[i].language&&nodes[i].language===nodes[j].language){
+          links.push({source:nodes[i].id,target:nodes[j].id});
+        }
+      }
+    }
+    return links;
+  }
+
+  let simulation=null;
+
+  function drawTrendingMap(repos){
+    const svg=d3.select('#trending-map');
+    svg.selectAll('*').remove();
+    if(simulation)simulation.stop();
+
+    const el=document.getElementById('trending-map');
+    let width=el.clientWidth||800;
+    let height=el.clientHeight||500;
+
+    const nodes=repos.map(r=>({
+      ...r,
+      r:Math.min(22,Math.max(5,Math.sqrt(r.stargazers_count/80)+5))
+    }));
+    const links=buildLinks(nodes);
+
+    const tip=document.getElementById('tm-tip');
+
+    // links layer
+    const linkSel=svg.append('g').selectAll('line')
+      .data(links).join('line')
+      .attr('stroke','rgba(110,79,132,0.08)')
+      .attr('stroke-width',.5);
+
+    // nodes
+    const node=svg.append('g').selectAll('.g-node')
+      .data(nodes).join('g')
+      .attr('class','g-node')
+      .attr('pointer-events','all')
+      .on('mouseenter',function(event,d){
+        tip.style.display='block';
+        tip.querySelector('.tn').textContent=d.full_name;
+        tip.querySelector('.tm').textContent='⭐ '+d.stargazers_count.toLocaleString()+(d.language?' · '+d.language:'');
+        moveTip(event);
+      })
+      .on('mousemove',moveTip)
+      .on('mouseleave',()=>{tip.style.display='none';})
+      .on('click',(e,d)=>{window.open(d.html_url,'_blank');});
+
+    function moveTip(event){
+      tip.style.left=(event.clientX+14)+'px';
+      tip.style.top=(event.clientY-10)+'px';
+    }
+
+    node.append('circle')
+      .attr('r',d=>d.r)
+      .attr('fill',d=>langColor(d.language))
+      .attr('stroke',d=>langColor(d.language))
+      .attr('stroke-opacity',.6)
+      .attr('stroke-width',1);
+
+    node.append('text')
+      .attr('dy','0.35em')
+      .attr('text-anchor','middle')
+      .attr('y',d=>d.r+10)
+      .text(d=>d.name);
+
+    simulation=d3.forceSimulation(nodes)
+      .force('charge',d3.forceManyBody().strength(-55))
+      .force('center',d3.forceCenter(width/2,height/2))
+      .force('collision',d3.forceCollide(d=>d.r+6))
+      .force('link',d3.forceLink(links).id(d=>d.id).distance(90).strength(0.08))
+      .alphaDecay(0.004)
+      .velocityDecay(0.55)
+      .on('tick',()=>{
+        linkSel
+          .attr('x1',d=>d.source.x).attr('y1',d=>d.source.y)
+          .attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+        node.attr('transform',d=>`translate(${d.x},${d.y})`);
+      });
+
+    function resize(){
+      width=el.clientWidth||800;
+      height=el.clientHeight||500;
+      if(simulation){
+        simulation.force('center',d3.forceCenter(width/2,height/2));
+        simulation.alpha(0.2).restart();
+      }
+    }
+    window.addEventListener('resize',resize);
+  }
+
+  async function initTrendingMap(){
+    let repos=null;
+    let liveData=false;
+    try{
+      const since=new Date(Date.now()-7*24*60*60*1000).toISOString().split('T')[0];
+      const res=await fetch(`https://api.github.com/search/repositories?q=created:>${since}&sort=stars&order=desc&per_page=30`,{headers:{Accept:'application/vnd.github+json'}});
+      if(res.ok){
+        const data=await res.json();
+        if(data.items&&data.items.length){
+          repos=data.items.map((r,i)=>({...r,id:r.id||i+1}));
+          liveData=true;
+        }
+      }
+    }catch(e){}
+    if(!repos)repos=SEED;
+    drawTrendingMap(repos);
+    if(liveData){
+      const lbl=document.getElementById('trendingLabel');
+      document.getElementById('trendingCount').textContent=repos.length;
+      lbl.style.opacity='1';
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded',initTrendingMap);
+})();
+</script>
 
 </body>
 </html>
