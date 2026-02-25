@@ -586,6 +586,13 @@ footer{
   overflow:hidden;position:relative;height:460px;
   display:flex;gap:0;transition:all .3s ease;
 }
+/* Styled scrollbar for pulse section — matches Atlas palette */
+.pulse-section ::-webkit-scrollbar{width:4px;height:4px}
+.pulse-section ::-webkit-scrollbar-track{background:rgba(110,79,132,.06);border-radius:4px}
+.pulse-section ::-webkit-scrollbar-thumb{background:rgba(110,79,132,.35);border-radius:4px}
+.pulse-section ::-webkit-scrollbar-thumb:hover{background:rgba(110,79,132,.6)}
+/* Firefox */
+.pulse-section *{scrollbar-width:thin;scrollbar-color:rgba(110,79,132,.35) rgba(110,79,132,.06)}
 .pulse-canvas-wrap::before{
   content:'';position:absolute;inset:0;
   background-image:radial-gradient(circle,#2a1840 1px,transparent 1px);
@@ -1235,12 +1242,12 @@ footer{
     svg.call(zoom);
 
     sim = d3.forceSimulation(nodes)
-      .force('link', d3.forceLink(links).id(d => d.id).distance(85).strength(.07))
-      .force('charge', d3.forceManyBody().strength(d => -(d.r * d.r * 3.2)))
-      .force('center', d3.forceCenter(W / 2, H / 2).strength(.07))
-      .force('collide', d3.forceCollide(d => d.r + 8).iterations(3))
-      .alphaDecay(0.016)
-      .velocityDecay(0.4);
+      .force('link', d3.forceLink(links).id(d => d.id).distance(45).strength(.18))
+      .force('charge', d3.forceManyBody().strength(d => -(d.r * d.r * 1.6)))
+      .force('center', d3.forceCenter(W / 2, H / 2).strength(.22))
+      .force('collide', d3.forceCollide(d => d.r + 5).iterations(3))
+      .alphaDecay(0.022)
+      .velocityDecay(0.45);
 
     const linkSel = g.append('g').selectAll('line').data(links).join('line')
       .attr('stroke', d => {
