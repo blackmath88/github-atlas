@@ -584,13 +584,135 @@ footer{
   border:1px solid var(--bd);border-radius:14px;
   background:linear-gradient(160deg,rgba(16,12,26,.92),rgba(8,6,16,.88));
   overflow:hidden;position:relative;height:460px;
+  display:flex;gap:0;transition:all .3s ease;
 }
 .pulse-canvas-wrap::before{
   content:'';position:absolute;inset:0;
   background-image:radial-gradient(circle,#2a1840 1px,transparent 1px);
   background-size:32px 32px;opacity:.18;pointer-events:none;z-index:0;
 }
-#pulseViz{width:100%;height:100%;display:block;position:relative;z-index:1}
+#pulseViz{flex:1;min-width:0;height:100%;display:block;position:relative;z-index:1;transition:all .3s ease;}
+
+/* ─── REPO SIDE PANEL ─── */
+#repoPanel{
+  width:0;overflow:hidden;
+  flex-shrink:0;
+  transition:width .3s cubic-bezier(.4,0,.2,1);
+  background:linear-gradient(180deg,rgba(14,10,26,.97),rgba(10,8,20,.97));
+  border-left:1px solid var(--bd);
+  border-radius:0 10px 10px 0;
+  position:relative;
+}
+#repoPanel.open{width:360px}
+
+.rp-inner{
+  width:360px;padding:24px 22px 28px;
+  display:flex;flex-direction:column;gap:14px;
+  height:100%;overflow-y:auto;
+}
+
+.rp-header{
+  display:flex;align-items:center;gap:10px;
+}
+.rp-lang-dot{
+  width:10px;height:10px;border-radius:50%;flex-shrink:0;
+}
+.rp-name{
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:1.1em;font-weight:800;
+  color:var(--near-white);letter-spacing:-.02em;flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.rp-close{
+  background:none;border:1px solid var(--bd);color:var(--txt-f);
+  width:24px;height:24px;border-radius:4px;cursor:pointer;font-size:14px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .18s;
+}
+.rp-close:hover{border-color:var(--border);color:var(--lavender)}
+
+.rp-fullname{
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.3px;
+  color:var(--teal-hi);margin-top:-8px;
+}
+
+.rp-desc{
+  font-size:.86em;color:var(--txt-d);line-height:1.72;
+  border-left:2px solid var(--teal);padding-left:10px;
+}
+
+/* Stats row */
+.rp-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:6px;
+}
+.rp-stat{
+  background:rgba(0,0,0,.25);border:1px solid var(--bd);border-radius:6px;
+  padding:8px 6px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--txt-d);
+}
+.rp-stat-icon{font-size:13px;line-height:1}
+
+/* Section labels */
+.rp-section-label{
+  font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--txt-f);margin-bottom:-6px;
+}
+
+/* Last commit */
+.rp-last-commit{
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--lavender);
+  background:rgba(110,79,132,.1);border:1px solid var(--bd);border-radius:5px;
+  padding:8px 10px;line-height:1.5;
+}
+
+/* Language bar */
+.rp-lang-bar{
+  height:8px;border-radius:4px;overflow:hidden;
+  display:flex;gap:1px;background:var(--bg);
+}
+.rp-lang-seg{height:100%;transition:flex .4s}
+
+.rp-lang-legend{
+  display:flex;flex-wrap:wrap;gap:8px;
+  font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--txt-d);
+}
+.rp-lang-item{display:flex;align-items:center;gap:4px}
+.rp-lang-swatch{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* Topics */
+.rp-topics{
+  display:flex;flex-wrap:wrap;gap:5px;
+}
+.rp-topic{
+  font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.3px;
+  padding:3px 8px;border-radius:3px;
+  background:rgba(77,128,127,.12);border:1px solid rgba(77,128,127,.3);color:var(--teal-hi);
+}
+
+/* Actions */
+.rp-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.rp-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:10px 16px;border-radius:6px;text-decoration:none;
+  font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;
+  letter-spacing:.4px;text-transform:uppercase;transition:all .2s;
+}
+.rp-btn-teal{
+  background:rgba(77,128,127,.16);border:1px solid rgba(77,128,127,.5);color:var(--teal-hi);
+}
+.rp-btn-teal:hover{background:rgba(77,128,127,.3);box-shadow:0 4px 20px rgba(77,128,127,.25)}
+.rp-btn-ghost{
+  background:transparent;border:1px solid var(--bd);color:var(--txt-d);
+}
+.rp-btn-ghost:hover{border-color:var(--border);color:var(--lavender)}
+
+/* Loading skeleton */
+.rp-skeleton{
+  height:10px;border-radius:3px;
+  background:linear-gradient(90deg,rgba(110,79,132,.15),rgba(110,79,132,.3),rgba(110,79,132,.15));
+  background-size:200% 100%;
+  animation:shimmer 1.4s linear infinite;
+  margin-bottom:4px;
+}
 
 .pulse-hud{
   position:absolute;bottom:14px;left:16px;z-index:10;
@@ -618,26 +740,16 @@ footer{
 .pulse-footer-link:hover{background:rgba(77,128,127,.12);border-color:var(--teal)}
 
 /* Tooltip */
-.pulse-tip{
-  position:fixed;background:rgba(8,6,16,.97);
-  border:1px solid var(--border);border-radius:8px;
-  padding:10px 13px;pointer-events:none;z-index:9999;display:none;max-width:240px;
-  box-shadow:0 8px 32px rgba(0,0,0,.7);backdrop-filter:blur(14px);
-}
-.pulse-tip .pt-name{
-  font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;
-  color:var(--near-white);margin-bottom:4px;
-}
-.pulse-tip .pt-meta{font-size:10px;color:var(--txt-d);line-height:1.55}
-.pulse-tip .pt-lang{
-  display:inline-block;padding:1px 6px;border-radius:3px;
-  font-size:9px;margin-top:4px;font-family:'JetBrains Mono',monospace;
-}
 
 /* Responsive */
 @media(max-width:900px){
   .pulse-header{flex-direction:column}
   .pulse-canvas-wrap{height:360px}
+}
+@media(max-width:700px){
+  .pulse-canvas-wrap{flex-direction:column}
+  #repoPanel.open{width:100%;border-left:none;border-top:1px solid var(--bd)}
+  .rp-inner{width:100%}
 }
 @media(max-width:600px){
   .pulse-canvas-wrap{height:280px}
@@ -723,6 +835,47 @@ footer{
 
   <div class="pulse-canvas-wrap">
     <svg id="pulseViz"></svg>
+    <div id="repoPanel">
+      <div class="rp-inner">
+
+        <!-- Header -->
+        <div class="rp-header">
+          <div class="rp-lang-dot" id="rpLangDot"></div>
+          <div class="rp-name" id="rpName">—</div>
+          <button class="rp-close" id="rpClose" aria-label="Close">×</button>
+        </div>
+        <div class="rp-fullname" id="rpFullName"></div>
+        <p class="rp-desc" id="rpDesc"></p>
+
+        <!-- Stat row -->
+        <div class="rp-stats" id="rpStats">
+          <div class="rp-stat"><span class="rp-stat-icon">⭐</span><span id="rpStars">—</span></div>
+          <div class="rp-stat"><span class="rp-stat-icon">🍴</span><span id="rpForks">—</span></div>
+          <div class="rp-stat"><span class="rp-stat-icon">🐛</span><span id="rpIssues">—</span></div>
+          <div class="rp-stat"><span class="rp-stat-icon">👥</span><span id="rpContribs">—</span></div>
+        </div>
+
+        <!-- Last commit -->
+        <div class="rp-section-label">Last commit</div>
+        <div class="rp-last-commit" id="rpLastCommit">—</div>
+
+        <!-- Language bar -->
+        <div class="rp-section-label">Languages</div>
+        <div class="rp-lang-bar" id="rpLangBar"></div>
+        <div class="rp-lang-legend" id="rpLangLegend"></div>
+
+        <!-- Topics -->
+        <div class="rp-section-label" id="rpTopicsLabel" style="display:none">Topics</div>
+        <div class="rp-topics" id="rpTopics"></div>
+
+        <!-- Actions -->
+        <div class="rp-actions">
+          <a id="rpNavLink" href="navigator.html" class="rp-btn rp-btn-teal">🗺️ Explore in Navigator</a>
+          <a id="rpGhLink" href="#" target="_blank" rel="noopener" class="rp-btn rp-btn-ghost">↗ Open on GitHub</a>
+        </div>
+
+      </div>
+    </div>
     <div class="pulse-hud" id="pulseHud">loading trending repos…</div>
   </div>
 
@@ -970,11 +1123,6 @@ footer{
   </div>
 </footer>
 
-<div class="pulse-tip" id="pulseTip">
-  <div class="pt-name" id="ptName"></div>
-  <div class="pt-meta" id="ptMeta"></div>
-</div>
-
 <script>
 /* ═══════════════════════════════════════════════════
    TODAY'S PULSE — Trending Repos Force Graph
@@ -982,38 +1130,38 @@ footer{
 ═══════════════════════════════════════════════════ */
 (async () => {
   const LANG_COLORS = {
-    JavaScript:'#f0a830', TypeScript:'#c060e0',
-    Python:'#4d8ef0', Go:'#4dd68c', Rust:'#e06050',
-    Java:'#e08030', 'C++':'#7080f0', 'C#':'#50b870',
-    Ruby:'#e04040', PHP:'#8060c0', Swift:'#e06040',
-    Kotlin:'#a060e0', Shell:'#60b090', HTML:'#e06050',
-    CSS:'#60a0e0', Vue:'#4db870', Svelte:'#e07040',
-    Dart:'#4090d0', Scala:'#c04040', R:'#4060e0',
+    JavaScript:'#f1e05a', TypeScript:'#3178c6', Python:'#3572A5',
+    Go:'#00ADD8', Rust:'#dea584', 'C++':'#f34b7d', C:'#555555',
+    Java:'#b07219', Ruby:'#701516', PHP:'#4F5D95',
+    Shell:'#89e051', Kotlin:'#A97BFF', Swift:'#F05138',
+    HTML:'#e34c26', CSS:'#563d7c', Vue:'#41b883',
+    Dart:'#00B4AB', Scala:'#c22d40', 'C#':'#178600',
   };
   const DEFAULT_COLOR = '#9d84b8';
+  function langColor(l){ return LANG_COLORS[l] || DEFAULT_COLOR; }
 
   // Seed data — shown instantly while API loads
   const SEED = [
-    {name:'awesome-ai-2025',full:'community/awesome-ai-2025',stars:9400,lang:'Markdown',desc:'Curated list of AI tools in 2025'},
-    {name:'fast-llm',full:'inference/fast-llm',stars:7200,lang:'Python',desc:'10x faster LLM inference engine'},
-    {name:'ui-universe',full:'design/ui-universe',stars:6800,lang:'TypeScript',desc:'Component library for the modern web'},
-    {name:'rustchain',full:'web3/rustchain',stars:5900,lang:'Rust',desc:'Blockchain runtime written in Rust'},
-    {name:'goflow',full:'pipeline/goflow',stars:5100,lang:'Go',desc:'Distributed data pipeline framework'},
-    {name:'devpod-cli',full:'tools/devpod-cli',stars:4700,lang:'Go',desc:'Reproducible dev environments, anywhere'},
-    {name:'promptlayer',full:'ai/promptlayer',stars:4200,lang:'Python',desc:'Prompt versioning and observability'},
-    {name:'shadcn-blocks',full:'ui/shadcn-blocks',stars:3900,lang:'TypeScript',desc:'Pre-built shadcn/ui page sections'},
-    {name:'opencode',full:'coding/opencode',stars:3600,lang:'TypeScript',desc:'Open source coding assistant'},
-    {name:'elysia-bun',full:'runtime/elysia-bun',stars:3200,lang:'TypeScript',desc:'Ergonomic Bun web framework'},
-    {name:'llamafile',full:'ggml/llamafile',stars:3000,lang:'C++',desc:'Distribute and run LLMs with a single file'},
-    {name:'zed-editor',full:'zed/zed',stars:2800,lang:'Rust',desc:'High-performance collaborative code editor'},
-    {name:'mastra',full:'mastra/mastra',stars:2600,lang:'TypeScript',desc:'TypeScript AI framework'},
-    {name:'meshlab',full:'cnr/meshlab',stars:2400,lang:'C++',desc:'3D mesh processing system'},
-    {name:'val-town',full:'val/val-town',stars:2200,lang:'TypeScript',desc:'Social website to write and deploy scripts'},
-    {name:'pglite',full:'electric/pglite',stars:2000,lang:'TypeScript',desc:'PostgreSQL in WASM'},
-    {name:'crawl4ai',full:'unclecode/crawl4ai',stars:1900,lang:'Python',desc:'Web crawling for AI workloads'},
-    {name:'outlines',full:'dottxt/outlines',stars:1700,lang:'Python',desc:'Structured text generation'},
-    {name:'jina-ai',full:'jina/jina',stars:1600,lang:'Python',desc:'Build multimodal AI services'},
-    {name:'rivet',full:'ironclad/rivet',stars:1500,lang:'TypeScript',desc:'Visual AI programming environment'},
+    {name:'awesome-ai-2025',full_name:'community/awesome-ai-2025',stargazers_count:9400,language:'Markdown',description:'Curated list of AI tools in 2025',forks_count:420,open_issues_count:12,topics:['ai','awesome-list'],html_url:'https://github.com/community/awesome-ai-2025'},
+    {name:'fast-llm',full_name:'inference/fast-llm',stargazers_count:7200,language:'Python',description:'10x faster LLM inference engine',forks_count:380,open_issues_count:25,topics:['llm','inference','ai'],html_url:'https://github.com/inference/fast-llm'},
+    {name:'ui-universe',full_name:'design/ui-universe',stargazers_count:6800,language:'TypeScript',description:'Component library for the modern web',forks_count:310,open_issues_count:18,topics:['ui','components','react'],html_url:'https://github.com/design/ui-universe'},
+    {name:'rustchain',full_name:'web3/rustchain',stargazers_count:5900,language:'Rust',description:'Blockchain runtime written in Rust',forks_count:270,open_issues_count:9,topics:['blockchain','rust','web3'],html_url:'https://github.com/web3/rustchain'},
+    {name:'goflow',full_name:'pipeline/goflow',stargazers_count:5100,language:'Go',description:'Distributed data pipeline framework',forks_count:240,open_issues_count:14,topics:['go','pipeline','distributed'],html_url:'https://github.com/pipeline/goflow'},
+    {name:'devpod-cli',full_name:'tools/devpod-cli',stargazers_count:4700,language:'Go',description:'Reproducible dev environments, anywhere',forks_count:200,open_issues_count:7,topics:['devops','cli','go'],html_url:'https://github.com/tools/devpod-cli'},
+    {name:'promptlayer',full_name:'ai/promptlayer',stargazers_count:4200,language:'Python',description:'Prompt versioning and observability',forks_count:180,open_issues_count:11,topics:['llm','prompts','observability'],html_url:'https://github.com/ai/promptlayer'},
+    {name:'shadcn-blocks',full_name:'ui/shadcn-blocks',stargazers_count:3900,language:'TypeScript',description:'Pre-built shadcn/ui page sections',forks_count:160,open_issues_count:6,topics:['shadcn','ui','react'],html_url:'https://github.com/ui/shadcn-blocks'},
+    {name:'opencode',full_name:'coding/opencode',stargazers_count:3600,language:'TypeScript',description:'Open source coding assistant',forks_count:140,open_issues_count:20,topics:['ai','coding','assistant'],html_url:'https://github.com/coding/opencode'},
+    {name:'elysia-bun',full_name:'runtime/elysia-bun',stargazers_count:3200,language:'TypeScript',description:'Ergonomic Bun web framework',forks_count:120,open_issues_count:8,topics:['bun','web','framework'],html_url:'https://github.com/runtime/elysia-bun'},
+    {name:'llamafile',full_name:'ggml/llamafile',stargazers_count:3000,language:'C++',description:'Distribute and run LLMs with a single file',forks_count:110,open_issues_count:15,topics:['llm','cpp','ai'],html_url:'https://github.com/ggml/llamafile'},
+    {name:'zed-editor',full_name:'zed/zed',stargazers_count:2800,language:'Rust',description:'High-performance collaborative code editor',forks_count:100,open_issues_count:30,topics:['editor','rust','collaboration'],html_url:'https://github.com/zed/zed'},
+    {name:'mastra',full_name:'mastra/mastra',stargazers_count:2600,language:'TypeScript',description:'TypeScript AI framework',forks_count:90,open_issues_count:12,topics:['ai','typescript','framework'],html_url:'https://github.com/mastra/mastra'},
+    {name:'meshlab',full_name:'cnr/meshlab',stargazers_count:2400,language:'C++',description:'3D mesh processing system',forks_count:85,open_issues_count:22,topics:['3d','mesh','cpp'],html_url:'https://github.com/cnr/meshlab'},
+    {name:'val-town',full_name:'val/val-town',stargazers_count:2200,language:'TypeScript',description:'Social website to write and deploy scripts',forks_count:80,open_issues_count:17,topics:['scripts','serverless','typescript'],html_url:'https://github.com/val/val-town'},
+    {name:'pglite',full_name:'electric/pglite',stargazers_count:2000,language:'TypeScript',description:'PostgreSQL in WASM',forks_count:75,open_issues_count:10,topics:['postgres','wasm','typescript'],html_url:'https://github.com/electric/pglite'},
+    {name:'crawl4ai',full_name:'unclecode/crawl4ai',stargazers_count:1900,language:'Python',description:'Web crawling for AI workloads',forks_count:70,open_issues_count:8,topics:['crawling','ai','python'],html_url:'https://github.com/unclecode/crawl4ai'},
+    {name:'outlines',full_name:'dottxt/outlines',stargazers_count:1700,language:'Python',description:'Structured text generation',forks_count:65,open_issues_count:6,topics:['llm','text-generation','python'],html_url:'https://github.com/dottxt/outlines'},
+    {name:'jina-ai',full_name:'jina/jina',stargazers_count:1600,language:'Python',description:'Build multimodal AI services',forks_count:60,open_issues_count:14,topics:['ai','multimodal','python'],html_url:'https://github.com/jina/jina'},
+    {name:'rivet',full_name:'ironclad/rivet',stargazers_count:1500,language:'TypeScript',description:'Visual AI programming environment',forks_count:55,open_issues_count:9,topics:['ai','visual','typescript'],html_url:'https://github.com/ironclad/rivet'},
   ];
 
   // Active language filter
@@ -1032,14 +1180,15 @@ footer{
 
   function buildNodes(repos) {
     return repos.map((r, i) => ({
-      id: i,
+      id: r.id ?? i,
       name: r.name,
-      fullName: r.full,
-      stars: r.stars,
-      lang: r.lang || 'Other',
-      desc: r.desc || '',
-      color: LANG_COLORS[r.lang] || DEFAULT_COLOR,
-      r: Math.max(6, Math.min(22, Math.log(r.stars + 1) * 1.8)),
+      fullName: r.full_name,
+      stars: r.stargazers_count,
+      lang: r.language || 'Other',
+      desc: (r.description || '').slice(0, 80),
+      color: langColor(r.language),
+      r: Math.max(6, Math.min(22, Math.log((r.stargazers_count || 0) + 1) * 1.8)),
+      repo: r,
     }));
   }
 
@@ -1065,7 +1214,7 @@ footer{
     const filtered = activeFilter === 'all'
       ? repos
       : repos.filter(r => {
-          const l = r.lang || 'Other';
+          const l = r.language || 'Other';
           if (activeFilter === 'Other') return !LANG_COLORS[l] || l === 'Other' || l === 'Markdown';
           return l === activeFilter;
         });
@@ -1096,7 +1245,7 @@ footer{
     const linkSel = g.append('g').selectAll('line').data(links).join('line')
       .attr('stroke', d => {
         const src = typeof d.source === 'object' ? d.source : nodes[d.source];
-        return src ? (LANG_COLORS[src.lang] || DEFAULT_COLOR) : DEFAULT_COLOR;
+        return src ? (langColor(src.lang)) : DEFAULT_COLOR;
       })
       .attr('stroke-opacity', .13)
       .attr('stroke-width', .9);
@@ -1137,36 +1286,22 @@ footer{
       .attr('pointer-events', 'none')
       .text(d => d.name.length > 18 ? d.name.slice(0, 16) + '…' : d.name);
 
-    // Tooltip
-    const tip = document.getElementById('pulseTip');
-
+    // Click handler — open side panel
     nodeG
       .on('mousemove', (ev, d) => {
-        // Highlight
         nodeG.filter(n => n.id === d.id).select('circle:nth-child(2)')
           .attr('fill-opacity', 1).attr('r', d.r * 1.18);
-        document.getElementById('ptName').textContent = d.fullName;
-        document.getElementById('ptMeta').innerHTML =
-          `⭐ ${d.stars.toLocaleString()} · ${d.desc}` +
-          `<br><span class="pt-lang" style="background:${d.color}22;color:${d.color};border:1px solid ${d.color}44">${d.lang}</span>`;
-        tip.style.display = 'block';
-        tip.style.left = (ev.clientX + 18) + 'px';
-        tip.style.top  = (ev.clientY - 16) + 'px';
       })
       .on('mouseleave', (ev, d) => {
         nodeG.filter(n => n.id === d.id).select('circle:nth-child(2)')
           .attr('fill-opacity', .82).attr('r', d.r);
-        tip.style.display = 'none';
       })
-      .on('click', (ev, d) => {
-        ev.stopPropagation();
-        const url = d.fullName.startsWith('http')
-          ? d.fullName
-          : `https://github.com/${d.fullName}`;
-        window.open(url, '_blank');
+      .on('click', (event, d) => {
+        event.stopPropagation();
+        openPanel(d.repo);
       });
 
-    svg.on('click', () => { tip.style.display = 'none'; });
+    svg.on('click', () => { closePanel(); });
 
     sim.on('tick', () => {
       linkSel
@@ -1179,7 +1314,7 @@ footer{
       ? `${nodes.length} repos`
       : `${nodes.length} ${activeFilter} repos`;
     document.getElementById('pulseHud').textContent =
-      `${label} · drag to rearrange · click to open on github`;
+      `${label} · drag to rearrange · click to explore`;
   }
 
   // Filter chip click handler
@@ -1203,23 +1338,134 @@ footer{
     if (!res.ok) throw new Error('api error');
     const data = await res.json();
     const live = (data.items || []).map(r => ({
+      id: r.id,
       name: r.name,
-      full: r.full_name,
-      stars: r.stargazers_count,
-      lang: r.language || 'Other',
-      desc: (r.description || '').slice(0, 80),
+      full_name: r.full_name,
+      stargazers_count: r.stargazers_count,
+      language: r.language || 'Other',
+      description: (r.description || '').slice(0, 80),
+      forks_count: r.forks_count ?? 0,
+      open_issues_count: r.open_issues_count ?? 0,
+      topics: r.topics || [],
+      html_url: r.html_url,
     }));
     if (live.length >= 5) {
       allRepos = live;
       renderPulse(allRepos);
       document.getElementById('pulseHud').textContent =
-        `${live.length} repos · live data · drag · click to open`;
+        `${live.length} repos · live data · drag · click to explore`;
     }
   } catch {
     // Seed data stays visible — no visible error shown
     document.getElementById('pulseHud').textContent =
-      `${SEED.length} repos · curated seed · drag · click to open`;
+      `${SEED.length} repos · curated seed · drag · click to explore`;
   }
+  // ─── Panel functions ───────────────────────────────────────────────────────
+  async function openPanel(repo) {
+    const panel = document.getElementById('repoPanel');
+    panel.classList.add('open');
+
+    document.getElementById('rpName').textContent     = repo.name;
+    document.getElementById('rpFullName').textContent = repo.full_name;
+    document.getElementById('rpDesc').textContent     = repo.description || 'No description.';
+    document.getElementById('rpStars').textContent    = fmtNum(repo.stargazers_count);
+    document.getElementById('rpForks').textContent    = fmtNum(repo.forks_count ?? 0);
+    document.getElementById('rpIssues').textContent   = fmtNum(repo.open_issues_count ?? 0);
+    document.getElementById('rpContribs').textContent = '…';
+    document.getElementById('rpLastCommit').textContent = '…';
+    document.getElementById('rpGhLink').href          = repo.html_url;
+    document.getElementById('rpNavLink').href         = `navigator.html?q=${encodeURIComponent(repo.name)}`;
+
+    const dot = document.getElementById('rpLangDot');
+    dot.style.background = langColor(repo.language);
+
+    const topicsWrap  = document.getElementById('rpTopics');
+    const topicsLabel = document.getElementById('rpTopicsLabel');
+    topicsWrap.innerHTML = '';
+    if (repo.topics && repo.topics.length) {
+      topicsLabel.style.display = '';
+      repo.topics.forEach(t => {
+        const el = document.createElement('span');
+        el.className = 'rp-topic';
+        el.textContent = t;
+        topicsWrap.appendChild(el);
+      });
+    } else {
+      topicsLabel.style.display = 'none';
+    }
+
+    document.getElementById('rpLangBar').innerHTML    = '<div class="rp-skeleton" style="flex:1;height:8px"></div>';
+    document.getElementById('rpLangLegend').innerHTML = '';
+
+    const base = `https://api.github.com/repos/${repo.full_name}`;
+
+    fetch(`${base}/contributors?per_page=30&anon=true`)
+      .then(r => r.json()).then(arr => {
+        if (Array.isArray(arr)) {
+          const n = arr.length;
+          document.getElementById('rpContribs').textContent = n === 30 ? '30+' : String(n);
+        }
+      }).catch(()=>{});
+
+    fetch(`${base}/commits?per_page=1`)
+      .then(r => r.json()).then(arr => {
+        if (Array.isArray(arr) && arr[0]) {
+          const c = arr[0];
+          const msg  = c.commit?.message?.split('\n')[0] || '—';
+          const when = c.commit?.author?.date ? timeAgo(new Date(c.commit.author.date)) : '';
+          const who  = c.commit?.author?.name || '';
+          document.getElementById('rpLastCommit').innerHTML =
+            `<span style="color:var(--near-white)">${esc(msg.slice(0,60))}</span><br>`+
+            `<span style="color:var(--txt-f);font-size:8px">${esc(who)} · ${when}</span>`;
+        }
+      }).catch(()=>{});
+
+    fetch(`${base}/languages`)
+      .then(r => r.json()).then(langs => {
+        if (typeof langs !== 'object' || !langs) return;
+        const entries = Object.entries(langs).sort((a,b)=>b[1]-a[1]);
+        const total = entries.reduce((s,[,v])=>s+v, 0);
+        if (!total) return;
+        const bar    = document.getElementById('rpLangBar');
+        const legend = document.getElementById('rpLangLegend');
+        bar.innerHTML = '';
+        legend.innerHTML = '';
+        entries.slice(0,6).forEach(([lang, bytes]) => {
+          const pct = (bytes/total*100).toFixed(1);
+          const col = langColor(lang);
+          const seg = document.createElement('div');
+          seg.className = 'rp-lang-seg';
+          seg.style.cssText = `flex:${pct};background:${col};`;
+          seg.title = `${lang} ${pct}%`;
+          bar.appendChild(seg);
+          const item = document.createElement('div');
+          item.className = 'rp-lang-item';
+          item.innerHTML = `<div class="rp-lang-swatch" style="background:${col}"></div>${esc(lang)} <span style="color:var(--txt-f)">${pct}%</span>`;
+          legend.appendChild(item);
+        });
+      }).catch(()=>{});
+  }
+
+  function closePanel() {
+    document.getElementById('repoPanel').classList.remove('open');
+  }
+
+  document.getElementById('rpClose').addEventListener('click', closePanel);
+
+  function fmtNum(n){ return n>=1000 ? (n/1000).toFixed(1)+'k' : String(n); }
+
+  function timeAgo(date){
+    const s = Math.floor((Date.now()-date)/1000);
+    if(s<60) return 'just now';
+    if(s<3600) return Math.floor(s/60)+'m ago';
+    if(s<86400) return Math.floor(s/3600)+'h ago';
+    if(s<86400*30) return Math.floor(s/86400)+'d ago';
+    if(s<86400*365) return Math.floor(s/86400/30)+'mo ago';
+    return Math.floor(s/86400/365)+'y ago';
+  }
+
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 })();
 </script>
 
