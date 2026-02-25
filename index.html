@@ -491,6 +491,29 @@ blockquote em{color:var(--lavender);font-style:normal}
 }
 .cta-gh:hover{color:var(--lav-dim)}
 
+/* ─── CTA EMBED ─── */
+.cta-embed-wrap{
+  border:1px solid var(--border);border-radius:14px;overflow:hidden;
+  max-width:960px;margin:0 auto;
+  box-shadow:0 20px 80px rgba(110,79,132,.2);
+  position:relative;z-index:1;
+}
+.cta-embed-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:10px 16px;
+  background:rgba(14,10,26,.97);
+  border-bottom:1px solid var(--bd);
+}
+.cta-embed-dot{
+  width:10px;height:10px;border-radius:50%;opacity:.75;flex-shrink:0;
+}
+.cta-embed-frame{
+  width:100%;height:560px;border:none;display:block;
+  background:var(--bg);
+}
+@media(max-width:900px){.cta-embed-frame{height:440px}}
+@media(max-width:600px){.cta-embed-frame{height:360px}}
+
 /* ─── FOOTER ─── */
 footer{
   padding:44px 0 36px;
@@ -1094,10 +1117,37 @@ footer{
 </section>
 
 <!-- ─── FINAL CTA ─── -->
-<section class="cta-section" id="start">
-  <h2>Pick a head.<br/>Start now.</h2>
-  <p>No signup. No waiting. Each tool opens instantly with demo data already loaded.</p>
-  <div class="cta-row">
+<section class="cta-section" id="start" style="padding:60px 60px 70px;text-align:center">
+
+  <!-- Eyebrow + heading -->
+  <div style="font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:4px;text-transform:uppercase;color:var(--txt-f);margin-bottom:14px">
+    See it in action
+  </div>
+  <h2 style="margin-bottom:12px">Atlas, mapping itself.</h2>
+  <p style="max-width:560px;margin:0 auto 36px">
+    Below is Hub running live — showing the <code style="font-family:'JetBrains Mono',monospace;font-size:.85em;color:var(--lavender);background:rgba(110,79,132,.12);padding:2px 7px;border-radius:3px">blackmath88</code> org. No signup. No token. Click any node.
+  </p>
+
+  <!-- Embedded Hub iframe -->
+  <div class="cta-embed-wrap">
+    <div class="cta-embed-bar">
+      <span class="cta-embed-dot" style="background:#e06060"></span>
+      <span class="cta-embed-dot" style="background:#d4a830"></span>
+      <span class="cta-embed-dot" style="background:#4d807f"></span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.5px;color:var(--txt-f);margin-left:10px">
+        blackmath88.github.io/github-atlas/hub.html?org=blackmath88
+      </span>
+    </div>
+    <iframe
+      src="hub.html?org=blackmath88"
+      title="GitHub Atlas Hub — live preview of blackmath88 org"
+      loading="lazy"
+      class="cta-embed-frame"
+    ></iframe>
+  </div>
+
+  <!-- CTA pills -->
+  <div class="cta-row" style="margin-top:40px">
     <a href="navigator.html" class="tool-pill launch" style="padding:14px 28px">🗺️ Navigator — Discover GitHub →</a>
     <a href="radar.html" class="tool-pill nav" style="padding:14px 28px">⚡ Radar — Analyze risk →</a>
     <a href="hub.html" class="tool-pill hub" style="padding:14px 28px">🏢 Hub — Map your org →</a>
@@ -1105,6 +1155,7 @@ footer{
   <a href="https://github.com/blackmath88/github-atlas" target="_blank" class="cta-gh">
     ⭐ star on github · blackmath88/github-atlas
   </a>
+
 </section>
 
 </div><!-- /wrapper -->
