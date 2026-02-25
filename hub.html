@@ -224,11 +224,11 @@ nav{
 
 /* ── SECTION LABELS ── */
 .lbl{
-  font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:3.5px;
-  text-transform:uppercase;color:var(--ac,var(--purple-mid));opacity:.6;
-  margin:14px 0 8px;display:flex;align-items:center;gap:8px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:.01em;color:var(--lavender);opacity:.85;
+  margin:18px 0 10px;display:flex;align-items:center;gap:10px;
 }
-.lbl::after{content:'';flex:1;height:1px;background:var(--bd)}
+.lbl::after{content:'';flex:1;height:1px;background:var(--border)}
 
 /* ── INPUTS ── */
 .search-form{display:flex;flex-direction:column;gap:6px;padding-bottom:14px;border-bottom:1px solid var(--bd);margin-bottom:2px}
@@ -601,38 +601,63 @@ input[type=range]::-webkit-slider-thumb{
   </div>
   <div class="scroll">
 
-    <div class="lbl">target org</div>
+    <div class="lbl">🎯 Target org</div>
     <div class="search-form">
       <div class="search-row">
         <input id="queryInput" type="text" placeholder="org or user name…"/>
-        <button id="searchBtn">Map</button>
+        <button id="searchBtn" style="font-size:11px;font-weight:600">Map</button>
       </div>
       <div class="token-row">
-        <input id="tokenInput" type="password" placeholder="GitHub token — needed for private orgs / large repos"/>
+        <input id="tokenInput" type="password" placeholder="GitHub token (optional — 60 req/hr without)"/>
+      </div>
+      <div style="
+        margin-top:8px;padding:9px 11px;
+        border:1px solid rgba(45,212,160,.15);border-radius:7px;
+        background:rgba(45,212,160,.05);font-size:10px;line-height:1.65;color:#607080;
+      ">
+        <span style="color:#2dd4a0;font-weight:700">Without a token:</span> 60 requests/hr — fine for small orgs.<br>
+        <span style="color:#2dd4a0;font-weight:700">With a token:</span> 5,000 req/hr — needed for orgs with many repos.<br>
+        <a href="https://github.com/settings/tokens/new?description=GitHub+Atlas&scopes=public_repo" target="_blank" style="
+          display:inline-block;margin-top:6px;color:#2dd4a0;font-weight:600;text-decoration:none;
+        " onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+          ↗ Create a free token on GitHub →
+        </a>
+        <span style="display:block;margin-top:4px;color:#4a5060;font-size:9px">Settings → Developer settings → Personal access tokens → No scopes needed for public repos</span>
       </div>
     </div>
 
-    <div class="lbl">view mode</div>
+    <div class="lbl">🗂 View mode</div>
     <div class="seg" id="viewSeg">
       <button class="seg-btn on" data-view="topics" onclick="setView(this)">by topic</button>
       <button class="seg-btn" data-view="language" onclick="setView(this)">by language</button>
       <button class="seg-btn" data-view="activity" onclick="setView(this)">by activity</button>
     </div>
 
-    <div class="lbl">filters</div>
+    <div class="lbl">⚙️ Filters</div>
     <div class="btns">
       <button class="btn full" id="btnActiveOnly">✦ Active Only (&lt;90d)</button>
       <button class="btn full" id="btnStarsOnly">⭐ High Stars Only</button>
-      <button class="btn full" id="btnReset">// reset view</button>
     </div>
 
-    <div class="lbl">force calibration</div>
+    <button id="btnReset" style="
+      display:block;width:100%;margin:16px 0 4px;padding:13px;
+      border:1px solid rgba(45,212,160,.3);border-radius:8px;
+      background:rgba(45,212,160,.08);
+      color:#2dd4a0;font-family:'Plus Jakarta Sans',sans-serif;
+      font-size:12px;font-weight:700;letter-spacing:.01em;
+      cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);
+    " onmouseover="this.style.background='rgba(45,212,160,.18)';this.style.borderColor='rgba(45,212,160,.6)'"
+       onmouseout="this.style.background='rgba(45,212,160,.08)';this.style.borderColor='rgba(45,212,160,.3)'">
+      ✕ Clear all filters
+    </button>
+
+    <div class="lbl">🎛 Force calibration</div>
     <div class="srow"><span>repulsion</span><b id="cV">-80</b></div>
     <input type="range" id="charge" min="-220" max="-20" value="-80">
     <div class="srow"><span>link distance</span><b id="dV">90</b></div>
     <input type="range" id="linkDist" min="25" max="220" value="90">
 
-    <div class="lbl">embed this hub</div>
+    <div class="lbl">📋 Embed this hub</div>
     <div class="embed-box" id="embedCode">
       Load an org to generate embed code.
     </div>

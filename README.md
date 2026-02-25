@@ -16,30 +16,36 @@ GitHub has evolved from a developer tool into public infrastructure. But its int
 
 GitHub's chaos isn't the problem. **Not having a map is.**
 
-## The Three Heads
+## The Three Tools
 
-### 🔍 Navigator — Risk & Ecosystem Health Analysis
-For architects, org leads, security audits, and investment decisions.
+### 🧭 Navigator — Find the Right AI/LLM Tool in 30 Seconds
+For AI researchers, prompt engineers, developers new to LLMs, and curious beginners.
 
-- Four analytical lenses: Architecture, Org Map, Health, Due Diligence
-- Single-maintainer risk detection
-- Burnout signal identification
-- Bridge engineer detection (contributors across 3+ repos)
-- Health scoring 0–100
-- Interactive D3 force graph
+- Search any GitHub topic — live results as a force-directed graph
+- 20 hand-curated repositories across 10 intent clusters
+- Four personas: Explorer, Builder, Prompt Engineer, Org Lead
+- Trust levels: Official, Community, Sensitive
+- 🌲 Dark Forest mode (hides leaked system prompts by default)
+- Drill inside repos — navigate README structure as an interactive map
+- Persona-specific guidance: difficulty level, how to get started
 
 **[→ Open Navigator](https://blackmath88.github.io/github-atlas/navigator.html)**
 
-### 🚀 Launchpad — Find the Right LLM Tool in 30 Seconds
-For AI researchers, prompt engineers, developers new to LLMs, and beginners.
+---
 
-- 20 hand-curated repositories across 10 intent clusters
-- Four personas: Explorer, Builder, Prompter, Org Lead
-- Trust levels: Official, Community, Sensitive
-- 🌲 Dark Forest mode (hides leaked system prompts by default)
-- Persona-specific guidance in detail panel
+### 📡 Radar — Risk & Ecosystem Health Analysis
+For architects, org leads, security audits, and investment decisions.
 
-**[→ Open Launchpad](https://blackmath88.github.io/github-atlas/launchpad.html)**
+- Four analytical lenses: Architecture Review, Org Map, Ecosystem Health, Due Diligence
+- Single-maintainer risk detection
+- Burnout signal identification
+- Bridge engineer detection (contributors active across 3+ repos)
+- Health scoring 0–100
+- Drill inside repos — navigate README structure as an interactive map
+
+**[→ Open Radar](https://blackmath88.github.io/github-atlas/radar.html)**
+
+---
 
 ### 🏢 Hub — Map Your Org, Share With Your Community
 For framework maintainers, open-source orgs, and teams managing multiple projects.
@@ -49,15 +55,16 @@ For framework maintainers, open-source orgs, and teams managing multiple project
 - Repository health scoring
 - Auto-generate embeddable iframe code
 - URL params (`?org=yourorg`) for direct linking
+- Drill inside repos — navigate README structure as an interactive map
 
-**[→ Open Hub](https://blackmath88.github.io/github-atlas/repo-hub.html)**
+**[→ Open Hub](https://blackmath88.github.io/github-atlas/hub.html)**
 
 ---
 
 ## Features
 
 - **100% client-side** — no backend, no tracking, no data collection
-- **GitHub API optional** — demo data included in all three tools, token unlocks higher rate limits (60 → 5000 req/hr)
+- **GitHub API optional** — demo data included, token unlocks higher rate limits (60 → 5,000 req/hr)
 - **MIT licensed** — fork it, customize it, embed it
 - **D3.js v7** force-directed graphs throughout
 - **Single HTML files** — works on GitHub Pages, any static host, or locally
@@ -83,16 +90,16 @@ cd github-atlas
 open index.html   # or double-click any .html file
 ```
 
-For GitHub API calls beyond 60 req/hr, add a personal access token in the tool's token field. Read-only public scopes only — no write permissions needed.
+For GitHub API calls beyond 60 req/hr, add a personal access token in the tool's token field. Read-only, public scopes only — no write permissions needed.
 
 ## Contributing
 
 Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 Ideas especially welcome for:
-- Additional curated repositories in Launchpad
-- New analytical lenses in Navigator
-- Domain-specific Launchpad maps (ML, infra, web3, etc.)
+- Additional curated repositories in Navigator
+- New analytical lenses in Radar
+- Domain-specific Navigator maps (ML infra, web3, devtools, etc.)
 
 ## License
 

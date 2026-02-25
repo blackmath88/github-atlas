@@ -221,11 +221,11 @@ nav{
 
 /* ── SECTION LABELS ── */
 .lbl{
-  font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:3.5px;
-  text-transform:uppercase;color:var(--ac,var(--purple-mid));opacity:.6;
-  margin:14px 0 8px;display:flex;align-items:center;gap:8px;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:11px;font-weight:700;
+  letter-spacing:.01em;color:var(--lavender);opacity:.85;
+  margin:18px 0 10px;display:flex;align-items:center;gap:10px;
 }
-.lbl::after{content:'';flex:1;height:1px;background:var(--bd)}
+.lbl::after{content:'';flex:1;height:1px;background:var(--border)}
 
 /* ── INPUTS ── */
 .search-form{display:flex;flex-direction:column;gap:6px;padding-bottom:14px;border-bottom:1px solid var(--bd);margin-bottom:2px}
@@ -517,7 +517,7 @@ input[type=range]::-webkit-slider-thumb{background:var(--ac-hi);box-shadow:0 0 1
 ══════════════════════════════════ -->
 <div class="panel">
   <div class="p-hdr">
-    <div class="eyebrow">github atlas · navigator</div>
+    <div class="eyebrow">github atlas · radar</div>
     <h1>Risk &amp; Health Analysis</h1>
     <div class="sub" id="headerSub">Evaluate ecosystem stability &amp; architecture.</div>
   </div>
@@ -529,7 +529,7 @@ input[type=range]::-webkit-slider-thumb{background:var(--ac-hi);box-shadow:0 0 1
   </div>
   <div class="scroll">
 
-    <div class="lbl">analytical lens</div>
+    <div class="lbl">🔬 Analytical lens</div>
     <div class="scenario-picker">
       <select id="scenarioSelect">
         <option value="architecture">🏗️ Architecture Review</option>
@@ -540,27 +540,52 @@ input[type=range]::-webkit-slider-thumb{background:var(--ac-hi);box-shadow:0 0 1
     </div>
     <div class="scenario-help" id="scenarioHelp"></div>
 
-    <div class="lbl">target</div>
+    <div class="lbl">🎯 Target</div>
     <div class="search-form">
       <div class="search-row">
         <input id="queryInput" type="text" placeholder="org or repo name…" />
-        <button id="searchBtn">Analyze</button>
+        <button id="searchBtn" style="font-size:11px;font-weight:600">Analyze</button>
       </div>
       <div class="token-row">
-        <input id="tokenInput" type="password" placeholder="GitHub token — required for large orgs (60 req/hr without)"/>
+        <input id="tokenInput" type="password" placeholder="GitHub token (optional — 60 req/hr without)"/>
+      </div>
+      <div style="
+        margin-top:8px;padding:9px 11px;
+        border:1px solid rgba(77,128,127,.2);border-radius:7px;
+        background:rgba(77,128,127,.06);font-size:10px;line-height:1.65;color:#607080;
+      ">
+        <span style="color:#4d807f;font-weight:700">Without a token:</span> 60 requests/hr — enough to explore small orgs.<br>
+        <span style="color:#4d807f;font-weight:700">With a token:</span> 5,000 req/hr — needed for large orgs like microsoft or langchain-ai.<br>
+        <a href="https://github.com/settings/tokens/new?description=GitHub+Atlas&scopes=public_repo" target="_blank" style="
+          display:inline-block;margin-top:6px;color:#6aa8a7;font-weight:600;text-decoration:none;
+        " onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+          ↗ Create a free token on GitHub →
+        </a>
+        <span style="display:block;margin-top:4px;color:#4a5060;font-size:9px">Settings → Developer settings → Personal access tokens → No scopes needed for public repos</span>
       </div>
     </div>
 
-    <div class="lbl">focus filters</div>
+    <div class="lbl">⚙️ Focus filters</div>
     <div class="btns">
       <button class="btn risk-btn" id="btnRisk">⚠ At Risk</button>
       <button class="btn bridge-btn" id="btnBridge">◈ Bridges</button>
       <button class="btn full" id="btnCritical">⭐ Critical Only</button>
       <button class="btn full demo-btn" id="btnDemo">⬡ Load Demo Data</button>
-      <button class="btn full" id="btnReset">// reset view</button>
     </div>
 
-    <div class="lbl">force calibration</div>
+    <button id="btnReset" style="
+      display:block;width:100%;margin:16px 0 4px;padding:13px;
+      border:1px solid rgba(110,79,132,.35);border-radius:8px;
+      background:rgba(110,79,132,.1);
+      color:var(--lavender);font-family:'Plus Jakarta Sans',sans-serif;
+      font-size:12px;font-weight:700;letter-spacing:.01em;
+      cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1);
+    " onmouseover="this.style.background='rgba(110,79,132,.22)';this.style.borderColor='rgba(202,177,223,.5)'"
+       onmouseout="this.style.background='rgba(110,79,132,.1)';this.style.borderColor='rgba(110,79,132,.35)'">
+      ✕ Clear all filters
+    </button>
+
+    <div class="lbl">🎛 Force calibration</div>
     <div class="srow"><span>repulsion</span><b id="cV">-90</b></div>
     <input type="range" id="charge" min="-220" max="-20" value="-90">
     <div class="srow"><span>link distance</span><b id="dV">80</b></div>
