@@ -86,6 +86,56 @@ body::before{
 }
 .filter-chip.on{background:rgba(45,212,160,.2);color:#2dd4a0;border-color:#2dd4a055}
 
+/* ── DEPENDENCY MODE ── */
+@keyframes pulse-dep{0%,100%{opacity:.15;transform:scale(1)}50%{opacity:.5;transform:scale(1.18)}}
+@keyframes pulse-dep-hi{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:.7;transform:scale(1.22)}}
+.dep-risk-ring{animation:pulse-dep-hi 1.8s ease-in-out infinite}
+.dep-ring{animation:pulse-dep 2.8s ease-in-out infinite}
+
+/* ── CONTRIBUTOR NODES ── */
+@keyframes pulse-contrib{0%,100%{opacity:.12;transform:scale(1)}50%{opacity:.45;transform:scale(1.2)}}
+@keyframes pulse-contrib-solo{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:.8;transform:scale(1.35)}}
+.contrib-ring{animation:pulse-contrib 2.5s ease-in-out infinite}
+.contrib-solo-ring{animation:pulse-contrib-solo 1.6s ease-in-out infinite}
+
+/* Language legend strip */
+#langLegend{
+  display:none;margin-top:8px;
+  flex-wrap:wrap;gap:5px;
+}
+.lang-dot{
+  display:flex;align-items:center;gap:4px;
+  font-size:8.5px;font-family:'JetBrains Mono',monospace;
+  color:#9a88b8;padding:2px 6px;border-radius:10px;
+  border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.03);
+}
+.lang-dot-circle{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.fingerprint-card{
+  margin:0 0 10px;padding:14px;
+  border:1px solid rgba(240,168,48,.25);border-radius:9px;
+  background:rgba(240,168,48,.06);
+  font-size:11px;line-height:1.75;color:#c4b4d8;
+}
+.fp-stat{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 0;border-bottom:1px solid rgba(110,79,132,.1);
+}
+.fp-stat:last-child{border-bottom:none}
+.fp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.fp-label{font-size:9px;font-family:'JetBrains Mono',monospace;color:#584870;min-width:70px}
+.fp-val{font-size:11px;color:#c4b4d8;flex:1}
+.fp-risk{color:#f05050;font-weight:700}
+.fp-ok{color:#2dd4a0;font-weight:700}
+
+/* Dep scan progress */
+.dep-progress{
+  padding:10px 12px;border:1px solid rgba(240,168,48,.2);border-radius:7px;
+  background:rgba(240,168,48,.05);font-size:10px;color:#c4a840;
+  font-family:'JetBrains Mono',monospace;letter-spacing:.02em;margin-bottom:8px;
+  display:none;
+}
+.dep-progress.active{display:block}
+
 /* ── EXPLORE BUTTON (L2 CTA) ── */
 .explore-btn{
   display:block;width:100%;margin-top:8px;padding:10px;
@@ -608,7 +658,7 @@ input[type=range]::-webkit-slider-thumb{
         <button id="searchBtn" style="font-size:11px;font-weight:600">Map</button>
       </div>
       <div class="token-row">
-        <input id="tokenInput" type="password" placeholder="GitHub token (optional — 60 req/hr without)"/>
+        <input id="tokenInput" type="password" placeholder="GitHub token — required for large orgs (microsoft, google…)"/>
       </div>
       <div style="
         margin-top:8px;padding:9px 11px;
@@ -650,6 +700,57 @@ input[type=range]::-webkit-slider-thumb{
        onmouseout="this.style.background='rgba(45,212,160,.08)';this.style.borderColor='rgba(45,212,160,.3)'">
       ✕ Clear all filters
     </button>
+
+    <div class="lbl">🎨 Node legend</div>
+    <div id="langLegend" style="flex-wrap:wrap;gap:5px;margin-bottom:10px">
+      <div style="font-size:10px;color:var(--txt-f)">Load an org to see language breakdown.</div>
+    </div>
+
+    <div class="lbl" style="margin-top:6px">👥 Contributors</div>
+    <div style="font-size:10px;color:var(--txt-f);line-height:1.65;margin-bottom:10px">
+      Overlay contributor nodes. Shows who maintains what — single-maintainer repos pulse red.
+    </div>
+    <div class="dep-progress" id="contribProgress">⏳ fetching contributors…</div>
+    <div class="btns">
+      <button class="btn full" id="btnContribScan" style="border-color:rgba(202,177,223,.35);color:#b898d8;background:rgba(202,177,223,.08)"
+        onmouseover="this.style.background='rgba(202,177,223,.18)'" onmouseout="if(!this.classList.contains('on'))this.style.background='rgba(202,177,223,.08)'">
+        👥 Show Contributors
+      </button>
+    </div>
+    <div id="contribLegend" style="display:none;margin-top:8px;font-size:9.5px;font-family:'JetBrains Mono',monospace;line-height:2">
+      <div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:#cab1df;box-shadow:0 0 3px #cab1df88"></div><span style="color:#9a88b8">Contributor</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:#f05050;box-shadow:0 0 5px #f0505088"></div><span style="color:#9a88b8">Solo maintainer ⚠</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:#4a9fd4"></div><span style="color:#9a88b8">Repo node (color = language)</span></div>
+    </div>
+
+    <div class="lbl" style="margin-top:14px">🔗 Dependency Mode</div>
+    <div style="font-size:10px;color:var(--txt-f);line-height:1.65;margin-bottom:10px">
+      Scan repos for external dependencies. Reveals coupling risk — which shared packages could take down your ecosystem.
+    </div>
+    <div class="dep-progress" id="depProgress">⏳ scanning…</div>
+    <div class="btns">
+      <button class="btn full" id="btnDepScan" style="border-color:rgba(240,168,48,.35);color:#c4a840;background:rgba(240,168,48,.08)"
+        onmouseover="this.style.background='rgba(240,168,48,.18)'" onmouseout="if(!this.classList.contains('on'))this.style.background='rgba(240,168,48,.08)'">
+        🔗 Scan Dependencies
+      </button>
+    </div>
+    <div id="depLegend" style="display:none;margin-top:8px;font-size:9.5px;font-family:'JetBrains Mono',monospace;line-height:2">
+      <div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:#f05050;box-shadow:0 0 4px #f05050"></div><span style="color:#9a88b8">High coupling (4+ repos)</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:#f0a830;box-shadow:0 0 3px #f0a830"></div><span style="color:#9a88b8">Shared dependency</span></div>
+      <div style="display:flex;align-items:center;gap:7px"><div style="width:8px;height:8px;border-radius:50%;background:#60c060"></div><span style="color:#9a88b8">Internal repo</span></div>
+    </div>
+
+    <div class="lbl" style="margin-top:14px">📋 Ecosystem</div>
+    <div class="btns">
+      <button class="btn full" id="btnFullAnalysis" style="border-color:rgba(240,168,48,.45);color:#f0c060;background:rgba(240,168,48,.12);font-weight:700"
+        onmouseover="this.style.background='rgba(240,168,48,.22)'" onmouseout="if(!this.classList.contains('on'))this.style.background='rgba(240,168,48,.12)'">
+        ⚡ Full Analysis
+      </button>
+      <button class="btn full" id="btnFingerprint" style="border-color:rgba(202,177,223,.3);color:#9d84b8;background:rgba(202,177,223,.07)"
+        onmouseover="this.style.background='rgba(202,177,223,.15)'" onmouseout="this.style.background='rgba(202,177,223,.07)'">
+        📋 Fingerprint only
+      </button>
+    </div>
 
     <div class="lbl">🎛 Force calibration</div>
     <div class="srow"><span>repulsion</span><b id="cV">-80</b></div>
@@ -710,7 +811,10 @@ input[type=range]::-webkit-slider-thumb{
       — By topic: repos grouped by their GitHub topics<br>
       — By language: grouped by primary language<br>
       — By activity: sized by recency &amp; commit frequency<br><br>
-      <strong>Try:</strong> microsoft, langchain-ai, huggingface, vercel
+      <strong>Try without a token:</strong><br>
+      huggingface · langchain-ai · supabase · vercel<br><br>
+      <strong style="color:#f0a830">⚠ Large orgs</strong> <span style="color:#9a88b8">(microsoft, google, meta) require a GitHub token — add one above.</span><br><br>
+      <a href="https://github.com/settings/tokens/new?description=GitHub+Atlas&scopes=public_repo" target="_blank" style="color:#2dd4a0;text-decoration:none">↗ Create a free read-only token →</a>
     </div>
   </div>
 </div>
@@ -758,10 +862,11 @@ async function fetchWithAuth(url) {
   const res = await fetch(url, {headers});
   if (res.status === 403) {
     const remaining = res.headers.get('X-RateLimit-Remaining');
-    if (remaining === '0') throw new Error('GitHub rate limit. Add a token for 5000 req/hr.');
-    throw new Error('Access forbidden.');
+    const retry = res.headers.get('Retry-After');
+    if (remaining === '0') throw new Error('Rate limit reached. Add a GitHub token in the field above for 5,000 req/hr.');
+    throw new Error('GitHub blocked this request (403). Large orgs like Microsoft require a token. Add one above and retry.');
   }
-  if (res.status === 404) throw new Error('Org not found. Check the name.');
+  if (res.status === 404) throw new Error('Org not found. Check the name and try again.');
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
@@ -807,6 +912,7 @@ async function loadOrg(orgName) {
     buildData(repos);
     renderGraph();
     updateStats();
+    updateLangLegend();
     hideLoading();
     document.getElementById('embedBadge').style.display = '';
     updateEmbedCode(orgName);
@@ -868,13 +974,26 @@ function buildData(repos) {
   const useLanguage = currentView === 'language';
   const groups = useTopic ? topicCenters : useLanguage ? langCenters : new Map();
 
-  // Only add group nodes with 2+ repos
-  const GROUP_COLORS = ['#2dd4a0','#60e8c0','#1aaa80','#4dd4b0','#90e8c8','#20b080','#3dc890','#70e0b0'];
-  let colorIdx = 0;
+  // Build a repoId→language lookup for dominant-color computation
+  const repoLangMap = new Map(nodes.map(n => [n.id, n.language]));
+
   groups.forEach((g, key) => {
     if (g.repos.length < 2) return;
     const gid = g.id;
-    nodes.push({id:gid, type:'group', name:g.label, color:GROUP_COLORS[colorIdx++ % GROUP_COLORS.length]});
+    // Dominant language among member repos
+    const langFreq = new Map();
+    g.repos.forEach(rid => {
+      const lang = repoLangMap.get(rid);
+      if (lang) langFreq.set(lang, (langFreq.get(lang)||0)+1);
+    });
+    const dominantLang = langFreq.size
+      ? [...langFreq.entries()].sort((a,b)=>b[1]-a[1])[0][0]
+      : null;
+    const groupColor = useLanguage
+      ? getLangColor(g.label)  // language group: use its own color
+      : (dominantLang ? getLangColor(dominantLang) : '#2dd4a0'); // topic group: dominant lang color
+
+    nodes.push({id:gid, type:'group', name:g.label, color:groupColor});
     nodeMap.set(gid, nodes.length-1);
     g.repos.forEach(rid => {
       links.push({source:rid, target:gid, kind:'in-group'});
@@ -895,17 +1014,50 @@ function buildData(repos) {
 /* ═══════════════════════════════════════════════════════
    RENDER
 ═══════════════════════════════════════════════════════ */
+/* ── LANGUAGE COLOR PALETTE ── */
+const LANG_COLORS = {
+  'Python':       '#4a9fd4',
+  'JavaScript':   '#f0c030',
+  'TypeScript':   '#5080e8',
+  'Go':           '#00c8d4',
+  'Rust':         '#e8602a',
+  'Java':         '#e88030',
+  'Kotlin':       '#9060e8',
+  'Swift':        '#f05828',
+  'C++':          '#9858c8',
+  'C':            '#7888b8',
+  'C#':           '#7050c8',
+  'Ruby':         '#cc3344',
+  'PHP':          '#7878c8',
+  'Shell':        '#60c878',
+  'Scala':        '#c03060',
+  'R':            '#2878b8',
+  'Dart':         '#48b8e8',
+  'HTML':         '#e87840',
+  'CSS':          '#3090d8',
+  'Vue':          '#42b883',
+  'Jupyter Notebook': '#f07830',
+  'MATLAB':       '#e88828',
+  'Lua':          '#4888d8',
+  'Haskell':      '#8868c8',
+  'Elixir':       '#9038a0',
+  'Clojure':      '#6898d8',
+  'default':      '#7878a8',
+};
+
+function getLangColor(lang) {
+  return LANG_COLORS[lang] || LANG_COLORS['default'];
+}
+
 function getRepoColor(d) {
   if (currentView === 'activity') {
-    if (d.inactive) return '#3060a0';
+    if (d.inactive) return '#384870';
     if (d.days_since_update < 14) return '#2dd4a0';
     if (d.days_since_update < 45) return '#60c090';
     return '#60a070';
   }
-  // Map by health
-  if (d.health_score > 70) return '#2dd4a0';
-  if (d.health_score > 40) return '#60a870';
-  return '#3a7055';
+  // Language-based color (primary) — with health as opacity/glow in render
+  return getLangColor(d.language);
 }
 
 function getRepoSize(d) {
@@ -913,85 +1065,6 @@ function getRepoSize(d) {
     return Math.max(5, Math.min(18, Math.max(4, 10 - d.days_since_update/30)));
   }
   return Math.max(5, Math.min(18, Math.log(d.stars+1) * 1.4));
-}
-
-function renderGraph() {
-  if (!CURRENT_DATA) return;
-  const ctr = document.querySelector('.center');
-  const W = ctr.clientWidth, H = ctr.clientHeight;
-
-  const svgEl = d3.select('#viz');
-  svgEl.selectAll('*').remove();
-
-  const g = svgEl.append('g');
-  const zoom = d3.zoom().scaleExtent([.05,4]).on('zoom', ev => g.attr('transform', ev.transform));
-  svgEl.call(zoom);
-
-  sim = d3.forceSimulation(CURRENT_DATA.nodes)
-    .force('link', d3.forceLink(CURRENT_DATA.links).id(d=>d.id)
-      .distance(+document.getElementById('linkDist').value)
-      .strength(.5))
-    .force('charge', d3.forceManyBody().strength(d => d.type==='group' ? -200 : +document.getElementById('charge').value))
-    .force('center', d3.forceCenter(W/2, H/2).strength(.06))
-    .force('collide', d3.forceCollide(d => d.type==='group' ? 28 : (getRepoSize(d)+5)).iterations(2));
-
-  linkSel = g.append('g').selectAll('line').data(CURRENT_DATA.links).join('line')
-    .attr('stroke','rgba(45,212,160,.18)')
-    .attr('stroke-width',1)
-    .attr('stroke-linecap','round');
-
-  nodeSel = g.append('g').selectAll('g').data(CURRENT_DATA.nodes).join('g')
-    .attr('class','g-node')
-    .call(d3.drag()
-      .on('start', ev => { if(!ev.active) sim.alphaTarget(.3).restart(); ev.subject.fx=ev.subject.x;ev.subject.fy=ev.subject.y; })
-      .on('drag', ev => { ev.subject.fx=ev.x;ev.subject.fy=ev.y; })
-      .on('end', ev => { if(!ev.active) sim.alphaTarget(0); ev.subject.fx=null;ev.subject.fy=null; })
-    );
-
-  // Group nodes
-  nodeSel.filter(d=>d.type==='group').append('circle')
-    .attr('r',22).attr('fill',d=>d.color).attr('fill-opacity',.07)
-    .attr('stroke',d=>d.color).attr('stroke-width',.6).attr('stroke-opacity',.2)
-    .style('animation','pulse-star 3s ease-in-out infinite');
-
-  nodeSel.append('circle')
-    .attr('class','main-circle')
-    .attr('r', d => d.type==='group' ? 12 : getRepoSize(d))
-    .attr('fill', d => d.type==='group' ? d.color : getRepoColor(d))
-    .attr('fill-opacity', d => d.type==='group' ? .85 : .88)
-    .attr('stroke', d => d.type==='group' ? d.color : getRepoColor(d))
-    .attr('stroke-width', 1.2)
-    .attr('stroke-opacity', .85);
-
-  nodeSel.append('text')
-    .attr('dx', d => (d.type==='group' ? 14 : getRepoSize(d)) + 4)
-    .attr('dy', 3)
-    .attr('fill', d => d.type==='group' ? d.color : '#c0e8d0')
-    .attr('font-size', d => d.type==='group' ? '8.5px' : '8px')
-    .attr('font-weight', d => d.type==='group' ? '600' : '400')
-    .text(d => d.name.length > 24 ? d.name.slice(0,22)+'…' : d.name);
-
-  const tip = document.getElementById('tip');
-  nodeSel
-    .on('mousemove', (ev,d) => {
-      if (d.type==='group') { tip.style.display='none'; return; }
-      document.getElementById('tn').textContent = d.name;
-      document.getElementById('tm').textContent = `⭐ ${d.stars.toLocaleString()} · ${d.language||'—'} · ${d.days_since_update}d ago`;
-      tip.style.display='block';
-      tip.style.left=(ev.clientX+14)+'px';
-      tip.style.top=(ev.clientY-12)+'px';
-    })
-    .on('mouseleave', () => tip.style.display='none')
-    .on('click', (ev,d) => { ev.stopPropagation(); if(d.type!=='group') selectNode(d.id); });
-
-  svgEl.on('click', () => selectNode(null));
-
-  sim.on('tick', () => {
-    linkSel.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
-    nodeSel.attr('transform',d=>`translate(${d.x},${d.y})`);
-  });
-
-  applyFilters();
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1044,12 +1117,22 @@ function buildDataFromNodes() {
     }
   });
 
-  const GROUP_COLORS = ['#2dd4a0','#60e8c0','#1aaa80','#4dd4b0','#90e8c8','#20b080','#3dc890','#70e0b0'];
-  let ci = 0;
+  const repoLangMap2 = new Map(repoNodes.map(n => [n.id, n.language]));
   const groups = currentView==='topics' ? topicCenters : currentView==='language' ? langCenters : new Map();
   groups.forEach((g) => {
     if (g.repos.length < 2) return;
-    nodes.push({id:g.id, type:'group', name:g.label, color:GROUP_COLORS[ci++ % GROUP_COLORS.length]});
+    const langFreq = new Map();
+    g.repos.forEach(rid => {
+      const lang = repoLangMap2.get(rid);
+      if (lang) langFreq.set(lang, (langFreq.get(lang)||0)+1);
+    });
+    const dominantLang = langFreq.size
+      ? [...langFreq.entries()].sort((a,b)=>b[1]-a[1])[0][0]
+      : null;
+    const groupColor = currentView === 'language'
+      ? getLangColor(g.label)
+      : (dominantLang ? getLangColor(dominantLang) : '#2dd4a0');
+    nodes.push({id:g.id, type:'group', name:g.label, color:groupColor});
     nodeMap.set(g.id, nodes.length-1);
     g.repos.forEach(rid => links.push({source:rid, target:g.id, kind:'in-group'}));
   });
@@ -1059,15 +1142,7 @@ function buildDataFromNodes() {
 
 /* ═══════════════════════════════════════════════════════
    FILTERS
-═══════════════════════════════════════════════════════ */
-function nodeVisible(d) {
-  if (d.type==='group') return true;
-  if (activeOnly && d.inactive) return false;
-  if (starsOnly && d.stars < 100) return false;
-  return true;
-}
-
-function applyFilters() {
+═══════════════════════════════════════════════════════ */function applyFilters() {
   if (!nodeSel) return;
   const nb = nodeById();
   nodeSel.style('display', d=>nodeVisible(d)?null:'none');
@@ -1095,35 +1170,6 @@ function updateStats() {
 ═══════════════════════════════════════════════════════ */
 function nodeById() { return new Map(CURRENT_DATA.nodes.map(n=>[n.id,n])); }
 
-function selectNode(id) {
-  selId = id;
-  if (!id) {
-    if (nodeSel) nodeSel.classed('dim',false).classed('focus',false);
-    if (linkSel) linkSel.style('display', d => {
-      const nb=nodeById();
-      const s=nb.get(d.source.id||d.source), t=nb.get(d.target.id||d.target);
-      return s&&t&&nodeVisible(s)&&nodeVisible(t)?null:'none';
-    });
-    renderDetailDefault();
-    return;
-  }
-  const node = nodeById().get(id);
-  if (!node) return;
-
-  const nbSet = new Set([id]);
-  CURRENT_DATA.links.forEach(l => {
-    const s=l.source.id||l.source, t=l.target.id||l.target;
-    if (s===id) nbSet.add(t); if (t===id) nbSet.add(s);
-  });
-
-  nodeSel.classed('dim',d=>!nbSet.has(d.id)).classed('focus',d=>nbSet.has(d.id));
-  linkSel.style('display', d => {
-    const s=d.source.id||d.source, t=d.target.id||d.target;
-    return s===id||t===id?null:'none';
-  });
-  renderDetail(node, nbSet);
-}
-
 /* ═══════════════════════════════════════════════════════
    DETAIL PANEL
 ═══════════════════════════════════════════════════════ */
@@ -1132,7 +1178,8 @@ function renderDetailDefault() {
   document.getElementById('dSub').textContent = 'Click any node to inspect.';
   document.getElementById('dPane').innerHTML = `<div style="height:10px"></div><div class="hint-txt">
     Load an org to map its ecosystem.<br><br>
-    <strong>Try:</strong> microsoft, langchain-ai, huggingface, vercel, supabase
+    <strong>Works without token:</strong> huggingface · langchain-ai · supabase · vercel<br><br>
+    <span style="color:#f0a830">⚠ microsoft / google / meta</span> need a token.
   </div>`;
 }
 
@@ -1649,8 +1696,975 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function setHudText(t){ document.getElementById('hudTxt').textContent=t; }
 
 /* ═══════════════════════════════════════════════════════
-   EVENTS
+   DEPENDENCY MODE — STATE
 ═══════════════════════════════════════════════════════ */
+let depMode = false;
+let DEP_NODES = [];
+let DEP_LINKS = [];
+let DEP_MAP   = new Map();
+let DEP_SCAN_DONE = false;
+
+/* ── CONTRIBUTOR STATE ── */
+let contribMode = false;
+let CONTRIB_NODES = [];   // person nodes
+let CONTRIB_LINKS = [];   // person → repo edges
+let CONTRIB_SCAN_DONE = false;
+
+// Python stdlib to filter out
+const PY_STDLIB = new Set(['os','sys','re','io','json','time','math','random','datetime','pathlib',
+  'typing','abc','copy','enum','functools','itertools','collections','dataclasses','logging',
+  'unittest','threading','subprocess','urllib','http','email','html','xml','csv','hashlib',
+  'base64','struct','socket','asyncio','concurrent','contextlib','inspect','importlib',
+  'traceback','warnings','gc','weakref','platform','shutil','tempfile','glob','fnmatch',
+  'pickle','shelve','sqlite3','configparser','argparse','getopt','textwrap','string','pprint']);
+
+// npm core to filter out
+const NODE_CORE = new Set(['fs','path','http','https','url','util','os','crypto','stream',
+  'events','buffer','child_process','cluster','net','dns','readline','zlib','vm','assert',
+  'console','process','module','timers','querystring','domain','punycode']);
+
+/* ── DEP FILE PARSERS ── */
+function parsePackageJson(text) {
+  try {
+    const pkg = JSON.parse(text);
+    const deps = {...(pkg.dependencies||{}), ...(pkg.peerDependencies||{})};
+    return Object.keys(deps)
+      .filter(k => !k.startsWith('@types/') && !NODE_CORE.has(k))
+      .map(k => k.replace(/^@[^/]+\//, '').toLowerCase()); // strip scope for display
+  } catch { return []; }
+}
+
+function parseRequirementsTxt(text) {
+  return text.split('\n')
+    .map(l => l.trim().replace(/#.*/, '').trim())
+    .filter(l => l && !l.startsWith('-') && !l.startsWith('git+'))
+    .map(l => l.split(/[>=<!;[\s]/)[0].toLowerCase().trim())
+    .filter(l => l.length > 1 && !PY_STDLIB.has(l));
+}
+
+function parsePyprojectToml(text) {
+  const deps = [];
+  // [project] dependencies array
+  const projMatch = text.match(/\[project\][^[]*?dependencies\s*=\s*\[([\s\S]*?)\]/);
+  if (projMatch) {
+    projMatch[1].split('\n').forEach(l => {
+      const m = l.match(/"([a-zA-Z0-9_-]+)/);
+      if (m) deps.push(m[1].toLowerCase());
+    });
+  }
+  // [tool.poetry.dependencies]
+  const poetryBlock = text.match(/\[tool\.poetry\.dependencies\]([\s\S]*?)(?=\[|$)/);
+  if (poetryBlock) {
+    poetryBlock[1].split('\n').forEach(l => {
+      const m = l.match(/^([a-zA-Z0-9_-]+)\s*=/);
+      if (m && m[1] !== 'python') deps.push(m[1].toLowerCase());
+    });
+  }
+  return deps.filter(d => !PY_STDLIB.has(d));
+}
+
+function parseGoMod(text) {
+  const deps = [];
+  const reqBlock = text.match(/^require\s+\(([\s\S]*?)\)/m);
+  const inline   = text.matchAll(/^require\s+(\S+)\s/gm);
+  if (reqBlock) {
+    reqBlock[1].split('\n').forEach(l => {
+      const m = l.trim().match(/^([^\s]+)/);
+      if (m && !m[1].startsWith('//')) {
+        const parts = m[1].split('/');
+        deps.push(parts[parts.length-1]);
+      }
+    });
+  }
+  for (const m of inline) {
+    const parts = m[1].split('/');
+    deps.push(parts[parts.length-1]);
+  }
+  return deps;
+}
+
+/* ── FETCH ONE DEP FILE ── */
+async function fetchDepFile(fullName, lang) {
+  const token = document.getElementById('tokenInput').value.trim();
+  const headers = {'Accept':'application/vnd.github.v3+json'};
+  if (token) headers['Authorization'] = `token ${token}`;
+
+  const candidates = [];
+  if (lang === 'Python') candidates.push('requirements.txt', 'pyproject.toml');
+  else if (['JavaScript','TypeScript'].includes(lang)) candidates.push('package.json');
+  else if (lang === 'Go') candidates.push('go.mod');
+  else candidates.push('package.json', 'requirements.txt');
+
+  for (const file of candidates) {
+    try {
+      const res = await fetch(`https://api.github.com/repos/${fullName}/contents/${file}`, {headers});
+      if (!res.ok) continue;
+      const data = await res.json();
+      const text = atob(data.content.replace(/\n/g,''));
+      if (file === 'package.json')     return {file, deps: parsePackageJson(text)};
+      if (file === 'requirements.txt') return {file, deps: parseRequirementsTxt(text)};
+      if (file === 'pyproject.toml')   return {file, deps: parsePyprojectToml(text)};
+      if (file === 'go.mod')           return {file, deps: parseGoMod(text)};
+    } catch { continue; }
+  }
+  return null;
+}
+
+/* ── MAIN SCAN ORCHESTRATOR ── */
+async function scanDependencies() {
+  if (!CURRENT_DATA) { toast('Load an org first.', 'err'); return; }
+
+  if (depMode) {
+    // Toggle off — preserve scan data so re-enable is instant
+    depMode = false;
+    document.getElementById('btnDepScan').textContent = '🔗 Show Dependencies';
+    document.getElementById('btnDepScan').classList.remove('on');
+    document.getElementById('btnDepScan').style.background = 'rgba(240,168,48,.08)';
+    document.getElementById('depLegend').style.display = 'none';
+    buildDataWithOverlays();
+    renderGraph();
+    updateStats();
+    setHudText(`${CURRENT_ORG} · mapped`);
+    return;
+  }
+
+  // If we already have scan data, just re-enable the overlay
+  if (DEP_SCAN_DONE && DEP_NODES.length) {
+    depMode = true;
+    document.getElementById('btnDepScan').textContent = '✕ Hide Dependencies';
+    document.getElementById('btnDepScan').classList.add('on');
+    document.getElementById('btnDepScan').style.background = 'rgba(240,168,48,.22)';
+    document.getElementById('depLegend').style.display = 'block';
+    buildDataWithOverlays();
+    renderGraph();
+    updateStats();
+    const riskCount = DEP_NODES.filter(d => d.risk).length;
+    setHudText(`dependency mode · ${DEP_NODES.length} external packages${riskCount ? ` · ⚠ ${riskCount} high-coupling` : ''}`);
+    return;
+  }
+
+  const repoNodes = CURRENT_DATA.nodes.filter(n => n.type === 'repo').slice(0, 20);
+  const prog = document.getElementById('depProgress');
+  prog.classList.add('active');
+
+  const depAgg = new Map(); // pkgName → Set of repoIds
+
+  for (let i = 0; i < repoNodes.length; i++) {
+    const n = repoNodes[i];
+    prog.textContent = `🔗 scanning ${i+1}/${repoNodes.length}: ${n.name}`;
+    const result = await fetchDepFile(n.fullName || `${CURRENT_ORG}/${n.name}`, n.language);
+    if (result && result.deps.length) {
+      result.deps.forEach(dep => {
+        if (!depAgg.has(dep)) depAgg.set(dep, new Set());
+        depAgg.get(dep).add(n.id);
+      });
+    }
+    // Small yield to keep UI responsive
+    await new Promise(r => setTimeout(r, 30));
+  }
+
+  prog.classList.remove('active');
+
+  // Keep only deps that appear in 2+ repos (shared = interesting)
+  // and top 12 by coupling count
+  const shared = [...depAgg.entries()]
+    .filter(([,repos]) => repos.size >= 2)
+    .sort((a,b) => b[1].size - a[1].size)
+    .slice(0, 12);
+
+  if (!shared.length) {
+    toast('No shared external dependencies found in scanned repos.', 'warn');
+    return;
+  }
+
+  // Build dep nodes and links
+  DEP_NODES = shared.map(([pkg, repos]) => ({
+    id: `dep-${pkg}`,
+    type: 'dep',
+    name: pkg,
+    coupling: repos.size,
+    repos: [...repos],
+    risk: repos.size >= 4,
+  }));
+
+  DEP_LINKS = [];
+  DEP_NODES.forEach(dn => {
+    dn.repos.forEach(rid => {
+      DEP_LINKS.push({source: rid, target: dn.id, kind: 'depends-on'});
+    });
+  });
+
+  DEP_MAP = new Map(shared);
+  depMode = true;
+  DEP_SCAN_DONE = true;
+
+  const btn = document.getElementById('btnDepScan');
+  btn.textContent = '✕ Hide Dependencies';
+  btn.classList.add('on');
+  btn.style.background = 'rgba(240,168,48,.22)';
+  document.getElementById('depLegend').style.display = 'block';
+
+  // Rebuild graph with dep overlay
+  buildDataFromNodesWithDeps();
+  renderGraph();
+  updateStats();
+
+  const riskCount = DEP_NODES.filter(d => d.risk).length;
+  const msg = riskCount > 0
+    ? `⚠ ${riskCount} high-coupling risk${riskCount>1?'s':''} found — ${shared.length} shared dependencies mapped`
+    : `✓ ${shared.length} shared dependencies mapped`;
+  toast(msg, riskCount > 0 ? 'warn' : 'ok');
+  setHudText(`dependency mode · ${shared.length} external packages`);
+}
+
+function buildDataFromNodesWithDeps() {
+  buildDataFromNodes(); // rebuild base
+  DEP_NODES.forEach(dn => CURRENT_DATA.nodes.push(dn));
+  DEP_LINKS.forEach(dl => CURRENT_DATA.links.push(dl));
+  // If contrib also active, re-apply contrib overlay
+  if (contribMode && CONTRIB_SCAN_DONE) {
+    CONTRIB_NODES.forEach(cn => CURRENT_DATA.nodes.push(cn));
+    CONTRIB_LINKS.forEach(cl => CURRENT_DATA.links.push(cl));
+  }
+}
+
+/* ── UNIFIED RENDER ── */
+function renderGraph() {
+  if (!CURRENT_DATA) return;
+  const ctr = document.querySelector('.center');
+  const W = ctr.clientWidth, H = ctr.clientHeight;
+
+  const svgEl = d3.select('#viz');
+  svgEl.selectAll('*').remove();
+
+  // Arrow marker for dep edges
+  const defs = svgEl.append('defs');
+  defs.append('marker').attr('id','arrow-dep')
+    .attr('viewBox','0 -4 8 8').attr('refX',14).attr('refY',0)
+    .attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto')
+    .append('path').attr('d','M0,-4L8,0L0,4').attr('fill','rgba(240,168,48,.5)');
+  defs.append('marker').attr('id','arrow-dep-risk')
+    .attr('viewBox','0 -4 8 8').attr('refX',14).attr('refY',0)
+    .attr('markerWidth',6).attr('markerHeight',6).attr('orient','auto')
+    .append('path').attr('d','M0,-4L8,0L0,4').attr('fill','rgba(240,80,80,.6)');
+
+  const g = svgEl.append('g');
+  const zoom = d3.zoom().scaleExtent([.05,4]).on('zoom', ev => g.attr('transform', ev.transform));
+  svgEl.call(zoom);
+
+  sim = d3.forceSimulation(CURRENT_DATA.nodes)
+    .force('link', d3.forceLink(CURRENT_DATA.links).id(d=>d.id)
+      .distance(d => d.kind === 'depends-on' ? 130 : +document.getElementById('linkDist').value)
+      .strength(d => d.kind === 'depends-on' ? .3 : .5))
+    .force('charge', d3.forceManyBody().strength(d => {
+      if (d.type === 'dep') return -180;
+      return d.type === 'group' ? -200 : +document.getElementById('charge').value;
+    }))
+    .force('center', d3.forceCenter(W/2, H/2).strength(.06))
+    .force('collide', d3.forceCollide(d => {
+      if (d.type === 'dep') return 20;
+      return d.type === 'group' ? 28 : (getRepoSize(d)+5);
+    }).iterations(2));
+
+  linkSel = g.append('g').selectAll('line').data(CURRENT_DATA.links).join('line')
+    .attr('stroke', d => {
+      if (d.kind === 'depends-on') {
+        const tgt = CURRENT_DATA.nodes.find(n=>n.id===(d.target.id||d.target));
+        return tgt?.risk ? 'rgba(240,80,80,.35)' : 'rgba(240,168,48,.3)';
+      }
+      if (d.kind === 'maintains') return 'rgba(202,177,223,.2)';
+      return 'rgba(45,212,160,.18)';
+    })
+    .attr('stroke-width', d => d.kind === 'depends-on' ? 1.2 : d.kind === 'maintains' ? 1 : 1)
+    .attr('stroke-dasharray', d => d.kind === 'depends-on' ? '4,3' : d.kind === 'maintains' ? '2,4' : 'none')
+    .attr('stroke-linecap','round')
+    .attr('marker-end', d => {
+      if (d.kind !== 'depends-on') return null;
+      const tgt = CURRENT_DATA.nodes.find(n=>n.id===(d.target.id||d.target));
+      return tgt?.risk ? 'url(#arrow-dep-risk)' : 'url(#arrow-dep)';
+    });
+
+  nodeSel = g.append('g').selectAll('g').data(CURRENT_DATA.nodes).join('g')
+    .attr('class','g-node')
+    .call(d3.drag()
+      .on('start', ev => { if(!ev.active) sim.alphaTarget(.3).restart(); ev.subject.fx=ev.subject.x;ev.subject.fy=ev.subject.y; })
+      .on('drag', ev => { ev.subject.fx=ev.x;ev.subject.fy=ev.y; })
+      .on('end', ev => { if(!ev.active) sim.alphaTarget(0); ev.subject.fx=null;ev.subject.fy=null; })
+    );
+
+  // Group nodes
+  nodeSel.filter(d=>d.type==='group').append('circle')
+    .attr('r',22).attr('fill',d=>d.color).attr('fill-opacity',.07)
+    .attr('stroke',d=>d.color).attr('stroke-width',.6).attr('stroke-opacity',.2)
+    .style('animation','pulse-star 3s ease-in-out infinite');
+
+  // Dep nodes — risk pulse ring
+  nodeSel.filter(d=>d.type==='dep' && d.risk).append('circle')
+    .attr('class','dep-risk-ring')
+    .attr('r', d => 14 + d.coupling * 2)
+    .attr('fill', '#f05050').attr('fill-opacity', .0)
+    .attr('stroke', '#f05050').attr('stroke-width', 1.5).attr('stroke-opacity', .6);
+
+  nodeSel.filter(d=>d.type==='dep' && !d.risk).append('circle')
+    .attr('class','dep-ring')
+    .attr('r', d => 12 + d.coupling * 1.5)
+    .attr('fill', '#f0a830').attr('fill-opacity', .0)
+    .attr('stroke', '#f0a830').attr('stroke-width', 1).attr('stroke-opacity', .4);
+
+  // Contributor nodes — solo maintainer pulse ring
+  nodeSel.filter(d=>d.type==='person' && d.isSolo).append('circle')
+    .attr('class','contrib-solo-ring')
+    .attr('r', 18)
+    .attr('fill','#f05050').attr('fill-opacity',.0)
+    .attr('stroke','#f05050').attr('stroke-width',1.5).attr('stroke-opacity',.65);
+
+  nodeSel.filter(d=>d.type==='person' && !d.isSolo).append('circle')
+    .attr('class','contrib-ring')
+    .attr('r', d => 11 + d.repoCount)
+    .attr('fill','#cab1df').attr('fill-opacity',.0)
+    .attr('stroke','#cab1df').attr('stroke-width',1).attr('stroke-opacity',.35);
+
+  // Single-maintainer repo warning ring
+  nodeSel.filter(d=>d.type==='repo' && d.singleMaintainer).append('circle')
+    .attr('r', d => getRepoSize(d) + 5)
+    .attr('fill','none')
+    .attr('stroke','#f05050').attr('stroke-width',1).attr('stroke-opacity',.45)
+    .attr('stroke-dasharray','3,3');
+
+  // Main circles
+  nodeSel.append('circle')
+    .attr('class','main-circle')
+    .attr('r', d => {
+      if (d.type === 'dep') return Math.min(16, 8 + d.coupling * 1.5);
+      if (d.type === 'person') return Math.min(12, 6 + d.repoCount * 1.2);
+      return d.type === 'group' ? 12 : getRepoSize(d);
+    })
+    .attr('fill', d => {
+      if (d.type === 'dep') return d.risk ? '#f05050' : '#f0a830';
+      if (d.type === 'person') return d.isSolo ? '#f05050' : '#cab1df';
+      return d.type === 'group' ? d.color : getRepoColor(d);
+    })
+    .attr('fill-opacity', d => {
+      if (d.type === 'dep' || d.type === 'person' || d.type === 'group') return .85;
+      // Dim stale repos
+      return d.inactive ? .35 : .88;
+    })
+    .attr('stroke', d => {
+      if (d.type === 'dep') return d.risk ? '#f07070' : '#f0c060';
+      if (d.type === 'person') return d.isSolo ? '#f07070' : '#d8c0f0';
+      return d.type === 'group' ? d.color : getRepoColor(d);
+    })
+    .attr('stroke-width', d => (d.type === 'dep' || d.type === 'person') ? 1.8 : 1.2)
+    .attr('stroke-opacity', d => d.type === 'repo' && d.inactive ? .35 : .9);
+
+  // Diamond overlay on dep nodes (external package indicator)
+  nodeSel.filter(d=>d.type==='dep').append('path')
+    .attr('d', d => {
+      const r = Math.min(6, 3 + d.coupling * .5);
+      return `M0,${-r} L${r},0 L0,${r} L${-r},0 Z`;
+    })
+    .attr('fill', '#080610').attr('fill-opacity', .7);
+
+  nodeSel.append('text')
+    .attr('dx', d => {
+      if (d.type === 'dep') return Math.min(16, 8 + d.coupling * 1.5) + 4;
+      if (d.type === 'person') return Math.min(12, 6 + d.repoCount * 1.2) + 4;
+      return (d.type==='group' ? 14 : getRepoSize(d)) + 4;
+    })
+    .attr('dy', 3)
+    .attr('fill', d => {
+      if (d.type === 'dep') return d.risk ? '#f07070' : '#f0c060';
+      if (d.type === 'person') return d.isSolo ? '#f07070' : '#d8c0f0';
+      return d.type==='group' ? d.color : getRepoColor(d);
+    })
+    .attr('fill-opacity', d => d.type === 'repo' && d.inactive ? .45 : .9)
+    .attr('font-size', d => d.type==='dep' ? '8px' : d.type==='group' ? '8.5px' : '8px')
+    .attr('font-weight', d => (d.type==='dep'||d.type==='person'||d.type==='group') ? '600' : '400')
+    .text(d => d.name.length > 22 ? d.name.slice(0,20)+'…' : d.name);
+
+  const tip = document.getElementById('tip');
+  nodeSel
+    .on('mousemove', (ev,d) => {
+      if (d.type==='group') { tip.style.display='none'; return; }
+      document.getElementById('tn').textContent = d.name;
+      if (d.type === 'dep') {
+        document.getElementById('tm').textContent = `📦 ${d.coupling} repos depend on this · ${d.risk ? '⚠ HIGH COUPLING' : 'shared dep'}`;
+      } else if (d.type === 'person') {
+        document.getElementById('tm').textContent = `👤 ${d.repoCount} repo${d.repoCount>1?'s':''} · ${d.isSolo ? '⚠ sole maintainer' : 'contributor'}`;
+      } else {
+        document.getElementById('tm').textContent = `${d.language||'—'} · ⭐ ${d.stars.toLocaleString()} · ${d.days_since_update}d ago${d.singleMaintainer?' · ⚠ solo':''}`;
+      }
+      tip.style.display='block';
+      tip.style.left=(ev.clientX+14)+'px';
+      tip.style.top=(ev.clientY-12)+'px';
+    })
+    .on('mouseleave', () => tip.style.display='none')
+    .on('click', (ev,d) => { ev.stopPropagation(); if(d.type!=='group') selectNode(d.id); });
+
+  svgEl.on('click', () => selectNode(null));
+
+  sim.on('tick', () => {
+    linkSel.attr('x1',d=>d.source.x).attr('y1',d=>d.source.y).attr('x2',d=>d.target.x).attr('y2',d=>d.target.y);
+    nodeSel.attr('transform',d=>`translate(${d.x},${d.y})`);
+  });
+
+  applyFilters();
+}
+
+/* ── DEP NODE DETAIL PANEL ── */
+function renderDepDetail(n) {
+  document.getElementById('dName').textContent = n.name;
+  document.getElementById('dSub').textContent = `external package · ${n.coupling} repos depend on this`;
+
+  const riskColor = n.risk ? '#f05050' : '#f0a830';
+  const riskLabel = n.risk ? '⚠ HIGH COUPLING RISK' : '◎ Shared dependency';
+
+  // Find which repos depend on this
+  const dependentRepos = CURRENT_DATA.nodes
+    .filter(r => r.type === 'repo' && n.repos.includes(r.id))
+    .sort((a,b) => b.stars - a.stars);
+
+  let html = `<div class="d-hero">
+    <div class="d-typelbl" style="color:${riskColor};border-color:${riskColor}44;background:${riskColor}11">📦 external package</div>
+    <div class="d-name">${esc(n.name)}</div>
+    <div class="badges">
+      <span class="badge" style="border-color:${riskColor}44;color:${riskColor}">${riskLabel}</span>
+    </div>
+  </div>`;
+
+  // Risk assessment
+  html += `<div class="d-sec" style="border:1px solid ${riskColor}33;border-radius:8px;padding:12px;background:${riskColor}08">
+    <h3 style="color:${riskColor}">${n.risk ? '⚠ Coupling Risk' : '◎ Dependency Signal'}</h3>
+    <p style="font-size:12px;margin-top:6px">
+      ${n.risk
+        ? `<strong style="color:${riskColor}">${n.coupling} of your repos depend on this package.</strong> If this package breaks, is abandoned, or introduces a breaking change, it affects a significant portion of your ecosystem.`
+        : `${n.coupling} repos share this dependency. Monitor for upstream changes.`
+      }
+    </p>
+  </div>`;
+
+  // Dependent repos list
+  html += `<div class="d-sec"><h3>Dependent repos (${dependentRepos.length})</h3><div class="conn-list">`;
+  dependentRepos.forEach(r => {
+    html += `<div class="conn" data-j="${esc(r.id)}">
+      <div class="cn">${esc(r.name)}</div>
+      <div class="cm">⭐ ${r.stars.toLocaleString()} · ${r.language||'—'}</div>
+    </div>`;
+  });
+  html += `</div></div>`;
+
+  // What to do
+  html += `<div class="d-sec">
+    <h3>What to check</h3>
+    <p style="font-size:11px;line-height:1.8;color:#9d84b8">
+      • Is this package actively maintained?<br>
+      • Does it have a single maintainer?<br>
+      • Is there a pinned version or a floating dependency?<br>
+      • What's the migration cost if it breaks?
+    </p>
+  </div>`;
+
+  // Search links
+  html += `<div class="d-sec">
+    <a href="https://github.com/search?q=${encodeURIComponent(n.name)}&type=repositories" target="_blank" class="action-btn">↗ Search on GitHub</a>
+    <a href="https://www.npmjs.com/package/${encodeURIComponent(n.name)}" target="_blank" class="action-btn secondary">↗ Check on npm</a>
+  </div>`;
+
+  document.getElementById('dPane').innerHTML = html;
+  document.getElementById('dPane').querySelectorAll('[data-j]')
+    .forEach(el => el.addEventListener('click', () => selectNode(el.dataset.j)));
+}
+
+/* ── UNIFIED selectNode ── */
+function selectNode(id) {
+  selId = id;
+  if (!id) {
+    if (nodeSel) nodeSel.classed('dim',false).classed('focus',false);
+    if (linkSel) linkSel.style('display', d => {
+      const nb = nodeById();
+      const s = nb.get(d.source.id||d.source), t = nb.get(d.target.id||d.target);
+      return s&&t&&nodeVisible(s)&&nodeVisible(t)?null:'none';
+    });
+    renderDetailDefault();
+    return;
+  }
+  const node = nodeById().get(id);
+  if (!node) return;
+
+  const nbSet = new Set([id]);
+  CURRENT_DATA.links.forEach(l => {
+    const s=l.source.id||l.source, t=l.target.id||l.target;
+    if (s===id) nbSet.add(t);
+    if (t===id) nbSet.add(s);
+  });
+
+  nodeSel.classed('dim', d=>!nbSet.has(d.id)).classed('focus', d=>nbSet.has(d.id));
+  linkSel.style('display', d => {
+    const s=d.source.id||d.source, t=d.target.id||d.target;
+    return s===id||t===id?null:'none';
+  });
+
+  if (node.type === 'dep') {
+    renderDepDetail(node);
+  } else if (node.type === 'person') {
+    renderContribDetail(node);
+  } else {
+    renderDetail(node, nbSet);
+  }
+}
+
+/* ── UNIFIED nodeVisible ── */
+function nodeVisible(d) {
+  if (d.type === 'dep') return depMode;
+  if (d.type === 'person') {
+    if (!contribMode) return false;
+    // Hide contributor if activeOnly and ALL their repos are inactive
+    if (activeOnly) {
+      const nb = new Map(CURRENT_DATA.nodes.map(n=>[n.id,n]));
+      const hasActiveRepo = d.repos.some(rid => {
+        const r = nb.get(rid);
+        return r && !r.inactive;
+      });
+      return hasActiveRepo;
+    }
+    return true;
+  }
+  if (d.type === 'group') return true;
+  if (activeOnly && d.inactive) return false;
+  if (starsOnly && d.stars < 100) return false;
+  return true;
+}
+
+/* ═══════════════════════════════════════════════════════
+   ECOSYSTEM FINGERPRINT
+═══════════════════════════════════════════════════════ */
+function generateFingerprint() {
+  if (!CURRENT_DATA) { toast('Load an org first.', 'err'); return; }
+
+  const repos = CURRENT_DATA.nodes.filter(n => n.type === 'repo');
+  if (!repos.length) { toast('No repos loaded.', 'err'); return; }
+
+  // Language breakdown
+  const langCount = new Map();
+  repos.forEach(r => { if (r.language) langCount.set(r.language, (langCount.get(r.language)||0)+1); });
+  const topLang = [...langCount.entries()].sort((a,b)=>b[1]-a[1]);
+  const primaryLang = topLang[0];
+  const langPct = primaryLang ? Math.round(primaryLang[1]/repos.length*100) : 0;
+
+  // Activity
+  const active = repos.filter(r => !r.inactive);
+  const stale = repos.filter(r => r.inactive);
+
+  // Star leaders
+  const byStars = [...repos].sort((a,b) => b.stars-a.stars);
+  const topRepo = byStars[0];
+
+  // Recently active (< 14 days)
+  const recentlyActive = repos.filter(r => r.days_since_update < 14);
+  const fastestGrowing = recentlyActive.sort((a,b)=>b.stars-a.stars)[0];
+
+  // Avg health
+  const avgHealth = Math.round(repos.reduce((a,r)=>a+(r.health_score||0),0)/repos.length);
+
+  // Total stars
+  const totalStars = repos.reduce((a,r)=>a+(r.stars||0),0);
+
+  // Dep risk summary
+  const highRiskDeps = DEP_NODES.filter(d => d.risk);
+  const sharedDeps = DEP_NODES.length;
+
+  // Build display
+  document.getElementById('dName').textContent = CURRENT_ORG || 'Ecosystem';
+  document.getElementById('dSub').textContent = 'Ecosystem Fingerprint';
+
+  let html = `
+  <div class="fingerprint-card">
+    <div style="font-size:9px;font-family:'JetBrains Mono',monospace;color:#9d84b8;margin-bottom:10px;text-transform:uppercase;letter-spacing:.08em">📋 Ecosystem Summary</div>
+    <div class="fp-stat">
+      <div class="fp-dot" style="background:#2dd4a0"></div>
+      <div class="fp-label">Repos</div>
+      <div class="fp-val">${repos.length} total · <span class="fp-ok">${active.length} active</span> · <span style="color:#584870">${stale.length} stale</span></div>
+    </div>
+    ${primaryLang ? `<div class="fp-stat">
+      <div class="fp-dot" style="background:#60c0e0"></div>
+      <div class="fp-label">Language</div>
+      <div class="fp-val">${primaryLang[0]} <span style="color:#584870">(${langPct}%)</span>${topLang[1] ? ` · ${topLang[1][0]}` : ''}</div>
+    </div>` : ''}
+    ${topRepo ? `<div class="fp-stat">
+      <div class="fp-dot" style="background:#f0c040"></div>
+      <div class="fp-label">Core hub</div>
+      <div class="fp-val"><span style="color:#f0c040">${topRepo.name}</span> <span style="color:#584870">(${topRepo.stars.toLocaleString()} ⭐)</span></div>
+    </div>` : ''}
+    ${fastestGrowing && fastestGrowing.id !== topRepo?.id ? `<div class="fp-stat">
+      <div class="fp-dot" style="background:#c060e0"></div>
+      <div class="fp-label">Most active</div>
+      <div class="fp-val">${fastestGrowing.name} <span style="color:#584870">(updated ${fastestGrowing.days_since_update}d ago)</span></div>
+    </div>` : ''}
+    <div class="fp-stat">
+      <div class="fp-dot" style="background:${avgHealth>70?'#2dd4a0':avgHealth>40?'#f0c040':'#f05050'}"></div>
+      <div class="fp-label">Avg health</div>
+      <div class="fp-val"><span class="${avgHealth>70?'fp-ok':avgHealth>40?'':' fp-risk'}">${avgHealth}%</span> · ${totalStars.toLocaleString()} ⭐ total</div>
+    </div>
+    ${DEP_SCAN_DONE ? `<div class="fp-stat">
+      <div class="fp-dot" style="background:${highRiskDeps.length?'#f05050':'#f0a830'}"></div>
+      <div class="fp-label">Dep risk</div>
+      <div class="fp-val">${sharedDeps} shared deps${highRiskDeps.length ? ` · <span class="fp-risk">⚠ ${highRiskDeps.length} high-coupling</span>` : ' · <span class="fp-ok">no critical risks</span>'}</div>
+    </div>` : `<div class="fp-stat">
+      <div class="fp-dot" style="background:#584870"></div>
+      <div class="fp-label">Dep scan</div>
+      <div class="fp-val" style="color:#584870">Not run — click Scan Dependencies</div>
+    </div>`}
+  </div>`;
+
+  // Natural language summary
+  const riskLine = highRiskDeps.length
+    ? ` <strong style="color:#f05050">⚠ ${highRiskDeps.length} external package${highRiskDeps.length>1?'s are':' is'} shared by 4+ repos</strong> — high coupling risk.`
+    : DEP_SCAN_DONE ? ' No critical dependency risks detected.' : '';
+
+  html += `<div class="d-sec">
+    <h3>Summary</h3>
+    <p style="font-size:12px;line-height:1.8;color:#c4b4d8">
+      <strong style="color:#f7f1fb">${CURRENT_ORG}</strong> has 
+      <strong>${repos.length} repos</strong>${primaryLang ? `, primarily ${primaryLang[0]} (${langPct}%)` : ''}.
+      ${active.length} ${active.length===1?'is':'are'} actively maintained.
+      ${topRepo ? `Core hub: <strong style="color:#f0c040">${topRepo.name}</strong> (${topRepo.stars.toLocaleString()} ⭐).` : ''}
+      Ecosystem health: <strong style="color:${avgHealth>70?'#2dd4a0':avgHealth>40?'#f0c040':'#f05050'}">${avgHealth}%</strong>.${riskLine}
+    </p>
+  </div>`;
+
+  if (highRiskDeps.length) {
+    html += `<div class="d-sec">
+      <h3>High-coupling dependencies</h3>`;
+    highRiskDeps.forEach(d => {
+      html += `<div onclick="selectNode('${d.id}')" style="cursor:pointer;padding:7px 9px;border:1px solid rgba(240,80,80,.25);border-radius:6px;margin-bottom:5px;background:rgba(240,80,80,.04);transition:all .15s"
+        onmouseover="this.style.borderColor='rgba(240,80,80,.5)'" onmouseout="this.style.borderColor='rgba(240,80,80,.25)'">
+        <div style="font-size:11px;font-family:'JetBrains Mono',monospace;color:#f07070">📦 ${esc(d.name)}</div>
+        <div style="font-size:10px;color:#584870;margin-top:2px">${d.coupling} repos depend on this</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<div class="d-sec">
+    <button onclick="copyFingerprint()" class="action-btn secondary" style="font-size:11px">⧉ Copy as text</button>
+  </div>`;
+
+  document.getElementById('dPane').innerHTML = html;
+}
+
+function copyFingerprint() {
+  if (!CURRENT_DATA) return;
+  const repos = CURRENT_DATA.nodes.filter(n=>n.type==='repo');
+  const active = repos.filter(r=>!r.inactive);
+  const langCount = new Map();
+  repos.forEach(r=>{ if(r.language) langCount.set(r.language,(langCount.get(r.language)||0)+1); });
+  const topLang = [...langCount.entries()].sort((a,b)=>b[1]-a[1])[0];
+  const topRepo = [...repos].sort((a,b)=>b.stars-a.stars)[0];
+  const avgHealth = Math.round(repos.reduce((a,r)=>a+(r.health_score||0),0)/repos.length);
+  const highRisk = DEP_NODES.filter(d=>d.risk);
+
+  const text = `${CURRENT_ORG} ecosystem — GitHub Atlas fingerprint
+${repos.length} repos · ${active.length} active${topLang ? ` · ${topLang[0]} ${Math.round(topLang[1]/repos.length*100)}%` : ''}
+Core hub: ${topRepo?.name||'—'} (${topRepo?.stars.toLocaleString()||0} ⭐)
+Health: ${avgHealth}%${highRisk.length ? `\nDep risk: ${highRisk.length} high-coupling package(s): ${highRisk.map(d=>d.name).join(', ')}` : ''}
+—
+Mapped with GitHub Atlas · https://blackmath88.github.io/github-atlas/hub.html`;
+
+  navigator.clipboard.writeText(text)
+    .then(()=>toast('✓ Fingerprint copied'))
+    .catch(()=>toast('Copy failed','err'));
+}
+
+/* ═══════════════════════════════════════════════════════
+   LANGUAGE LEGEND — update after org load
+═══════════════════════════════════════════════════════ */
+function updateLangLegend() {
+  if (!CURRENT_DATA) return;
+  const repos = CURRENT_DATA.nodes.filter(n => n.type === 'repo');
+  const langCount = new Map();
+  repos.forEach(r => {
+    if (r.language) langCount.set(r.language, (langCount.get(r.language)||0)+1);
+  });
+  const sorted = [...langCount.entries()].sort((a,b) => b[1]-a[1]).slice(0, 8);
+  const el = document.getElementById('langLegend');
+  if (!sorted.length) {
+    el.style.display = 'none';
+    return;
+  }
+  el.style.display = 'flex';
+  el.innerHTML = sorted.map(([lang, count]) =>
+    `<div class="lang-dot">
+      <div class="lang-dot-circle" style="background:${getLangColor(lang)}"></div>
+      <span>${lang} <span style="color:#584870">${count}</span></span>
+    </div>`
+  ).join('');
+}
+
+/* ═══════════════════════════════════════════════════════
+   CONTRIBUTOR MODE
+═══════════════════════════════════════════════════════ */
+async function scanContributors() {
+  if (!CURRENT_DATA) { toast('Load an org first.', 'err'); return; }
+
+  if (contribMode) {
+    // Toggle off — preserve scan data
+    contribMode = false;
+    document.getElementById('btnContribScan').textContent = '👥 Show Contributors';
+    document.getElementById('btnContribScan').classList.remove('on');
+    document.getElementById('btnContribScan').style.background = 'rgba(202,177,223,.08)';
+    document.getElementById('contribLegend').style.display = 'none';
+    buildDataWithOverlays();
+    renderGraph();
+    setHudText(`${CURRENT_ORG} · mapped`);
+    return;
+  }
+
+  // If we already have scan data, just re-enable
+  if (CONTRIB_SCAN_DONE && CONTRIB_NODES.length) {
+    contribMode = true;
+    document.getElementById('btnContribScan').textContent = '✕ Hide Contributors';
+    document.getElementById('btnContribScan').classList.add('on');
+    document.getElementById('btnContribScan').style.background = 'rgba(202,177,223,.22)';
+    document.getElementById('contribLegend').style.display = 'block';
+    buildDataWithOverlays();
+    renderGraph();
+    const soloCount = CURRENT_DATA.nodes.filter(n=>n.type==='repo'&&n.singleMaintainer).length;
+    setHudText(`contributor view · ${CONTRIB_NODES.length} people${soloCount ? ` · ⚠ ${soloCount} solo` : ''}`);
+    return;
+  }
+
+  const repoNodes = CURRENT_DATA.nodes.filter(n => n.type === 'repo').slice(0, 18);
+  const prog = document.getElementById('contribProgress');
+  prog.classList.add('active');
+
+  const token = document.getElementById('tokenInput').value.trim();
+  const headers = {'Accept':'application/vnd.github.v3+json'};
+  if (token) headers['Authorization'] = `token ${token}`;
+
+  // person login → { repos:Set, contributions:N, avatar }
+  const personMap = new Map();
+
+  for (let i = 0; i < repoNodes.length; i++) {
+    const n = repoNodes[i];
+    prog.textContent = `👥 ${i+1}/${repoNodes.length}: ${n.name}`;
+    try {
+      const fullName = n.fullName || `${CURRENT_ORG}/${n.name}`;
+      const res = await fetch(
+        `https://api.github.com/repos/${fullName}/contributors?per_page=10&anon=false`,
+        {headers}
+      );
+      if (!res.ok) continue;
+      const contribs = await res.json();
+      if (!Array.isArray(contribs)) continue;
+
+      contribs.slice(0, 5).forEach(c => {
+        if (!c.login) return;
+        if (!personMap.has(c.login)) {
+          personMap.set(c.login, {
+            login: c.login,
+            avatar: c.avatar_url,
+            repos: new Set(),
+            totalContribs: 0,
+          });
+        }
+        const p = personMap.get(c.login);
+        p.repos.add(n.id);
+        p.totalContribs += c.contributions || 0;
+      });
+    } catch { /* rate limit or missing */ }
+    await new Promise(r => setTimeout(r, 40));
+  }
+
+  prog.classList.remove('active');
+
+  // Keep contributors active in 2+ repos (cross-repo contributors are most interesting)
+  // Plus any single-repo contributor who has very high commit count (core maintainer signal)
+  const filtered = [...personMap.entries()]
+    .filter(([, p]) => p.repos.size >= 2 || p.totalContribs > 100)
+    .sort((a,b) => b[1].repos.size - a[1].repos.size)
+    .slice(0, 20);
+
+  if (!filtered.length) {
+    toast('No cross-repo contributors found. Try with a token for better results.', 'warn');
+    return;
+  }
+
+  // Flag repos that appear in only ONE contributor's set = single-maintainer
+  const repoContribCount = new Map();
+  filtered.forEach(([, p]) => {
+    p.repos.forEach(rid => {
+      repoContribCount.set(rid, (repoContribCount.get(rid)||0)+1);
+    });
+  });
+
+  CONTRIB_NODES = filtered.map(([login, p]) => ({
+    id: `person-${login}`,
+    type: 'person',
+    name: login,
+    avatar: p.avatar,
+    repoCount: p.repos.size,
+    totalContribs: p.totalContribs,
+    repos: [...p.repos],
+    // Sole maintainer: this person is the only tracked contributor for 1+ repos
+    isSolo: [...p.repos].some(rid => repoContribCount.get(rid) === 1),
+  }));
+
+  // Mark repo nodes with single-maintainer flag
+  CURRENT_DATA.nodes.forEach(n => {
+    if (n.type === 'repo') {
+      n.singleMaintainer = repoContribCount.get(n.id) === 1;
+    }
+  });
+
+  CONTRIB_LINKS = [];
+  CONTRIB_NODES.forEach(pn => {
+    pn.repos.forEach(rid => {
+      CONTRIB_LINKS.push({source: pn.id, target: rid, kind: 'maintains'});
+    });
+  });
+
+  contribMode = true;
+  CONTRIB_SCAN_DONE = true;
+
+  const btn = document.getElementById('btnContribScan');
+  btn.textContent = '✕ Hide Contributors';
+  btn.classList.add('on');
+  btn.style.background = 'rgba(202,177,223,.22)';
+  document.getElementById('contribLegend').style.display = 'block';
+
+  buildDataWithOverlays();
+  renderGraph();
+
+  const soloCount = CURRENT_DATA.nodes.filter(n=>n.type==='repo'&&n.singleMaintainer).length;
+  toast(soloCount > 0
+    ? `⚠ ${soloCount} single-maintainer repo${soloCount>1?'s':''} detected · ${filtered.length} contributors mapped`
+    : `✓ ${filtered.length} contributors mapped`,
+    soloCount > 0 ? 'warn' : ''
+  );
+  setHudText(`contributor view · ${filtered.length} people across ${repoNodes.length} repos`);
+}
+
+function buildDataWithOverlays() {
+  if (depMode && DEP_SCAN_DONE) {
+    buildDataFromNodesWithDeps();
+  } else {
+    buildDataFromNodes();
+  }
+  if (contribMode && CONTRIB_SCAN_DONE) {
+    CONTRIB_NODES.forEach(cn => CURRENT_DATA.nodes.push(cn));
+    CONTRIB_LINKS.forEach(cl => CURRENT_DATA.links.push(cl));
+  }
+}
+
+/* Render detail for contributor nodes */
+function renderContribDetail(n) {
+  document.getElementById('dName').textContent = n.name;
+  document.getElementById('dSub').textContent = `contributor · ${n.repoCount} repo${n.repoCount>1?'s':''}`;
+
+  const repoNodes = CURRENT_DATA.nodes
+    .filter(r => r.type === 'repo' && n.repos.includes(r.id))
+    .sort((a,b) => b.stars - a.stars);
+
+  const riskColor = n.isSolo ? '#f05050' : '#cab1df';
+
+  let html = `<div class="d-hero">
+    <div class="d-typelbl" style="color:${riskColor};border-color:${riskColor}44;background:${riskColor}11">👤 contributor</div>
+    <div class="d-name" style="display:flex;align-items:center;gap:10px">
+      ${n.avatar ? `<img src="${esc(n.avatar)}" style="width:28px;height:28px;border-radius:50%;border:1.5px solid ${riskColor}55" onerror="this.remove()"/>` : ''}
+      ${esc(n.name)}
+    </div>
+    <div class="badges">
+      ${n.isSolo ? '<span class="badge" style="border-color:rgba(240,80,80,.4);color:#f05050">⚠ sole maintainer</span>' : ''}
+      <span class="badge">${n.repoCount} repo${n.repoCount>1?'s':''}</span>
+    </div>
+  </div>`;
+
+  if (n.isSolo) {
+    html += `<div class="d-sec" style="border:1px solid rgba(240,80,80,.25);border-radius:8px;padding:12px;background:rgba(240,80,80,.06)">
+      <h3 style="color:#f05050">⚠ Bus Factor Risk</h3>
+      <p style="font-size:12px;margin-top:6px">
+        This contributor is the <strong style="color:#f07070">only tracked maintainer</strong> for at least one repo. If they become unavailable, those repos have no obvious successor.
+      </p>
+    </div>`;
+  }
+
+  html += `<div class="d-sec"><h3>Maintains (${repoNodes.length})</h3><div class="conn-list">`;
+  repoNodes.forEach(r => {
+    html += `<div class="conn" data-j="${esc(r.id)}" style="border-left:2px solid ${getLangColor(r.language)}44">
+      <div class="cn" style="display:flex;align-items:center;gap:6px">
+        <div style="width:6px;height:6px;border-radius:50%;background:${getLangColor(r.language)};flex-shrink:0"></div>
+        ${esc(r.name)}
+      </div>
+      <div class="cm">${r.language||'—'} · ⭐ ${r.stars.toLocaleString()}</div>
+    </div>`;
+  });
+  html += `</div></div>`;
+
+  html += `<div class="d-sec">
+    <a href="https://github.com/${esc(n.name)}" target="_blank" class="action-btn">↗ View on GitHub</a>
+  </div>`;
+
+  document.getElementById('dPane').innerHTML = html;
+  document.getElementById('dPane').querySelectorAll('[data-j]')
+    .forEach(el => el.addEventListener('click', () => selectNode(el.dataset.j)));
+}
+
+/* ═══════════════════════════════════════════════════════
+   FULL ANALYSIS — runs dep scan + contrib scan + fingerprint
+═══════════════════════════════════════════════════════ */
+async function runFullAnalysis() {
+  if (!CURRENT_DATA) { toast('Load an org first.', 'err'); return; }
+
+  const btn = document.getElementById('btnFullAnalysis');
+  btn.textContent = '⏳ Running…';
+  btn.disabled = true;
+  btn.style.opacity = '.6';
+
+  setHudText('full analysis · running…');
+
+  // Step 1: dep scan (if not already done)
+  if (!DEP_SCAN_DONE) {
+    toast('Step 1/2 — scanning dependencies…');
+    await scanDependencies();
+  } else if (!depMode) {
+    // Already scanned, just enable
+    depMode = true;
+    document.getElementById('btnDepScan').textContent = '✕ Hide Dependencies';
+    document.getElementById('btnDepScan').classList.add('on');
+    document.getElementById('btnDepScan').style.background = 'rgba(240,168,48,.22)';
+    document.getElementById('depLegend').style.display = 'block';
+  }
+
+  // Step 2: contributor scan (if not already done)
+  if (!CONTRIB_SCAN_DONE) {
+    toast('Step 2/2 — fetching contributors…');
+    await scanContributors();
+  } else if (!contribMode) {
+    contribMode = true;
+    document.getElementById('btnContribScan').textContent = '✕ Hide Contributors';
+    document.getElementById('btnContribScan').classList.add('on');
+    document.getElementById('btnContribScan').style.background = 'rgba(202,177,223,.22)';
+    document.getElementById('contribLegend').style.display = 'block';
+    buildDataWithOverlays();
+    renderGraph();
+  }
+
+  // Step 3: generate fingerprint
+  generateFingerprint();
+
+  btn.textContent = '⚡ Full Analysis';
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  setHudText('full analysis complete');
+  toast('✓ Full analysis complete — see fingerprint panel');
+}
+
+/* ── EVENTS */
+document.getElementById('btnFullAnalysis').addEventListener('click', runFullAnalysis);
+document.getElementById('btnContribScan').addEventListener('click', scanContributors);
+document.getElementById('btnDepScan').addEventListener('click', scanDependencies);
+document.getElementById('btnFingerprint').addEventListener('click', generateFingerprint);
+
 document.getElementById('searchBtn').addEventListener('click',()=>{
   const q=document.getElementById('queryInput').value.trim();
   if(q) loadOrg(q); else toast('Enter an org name.','err');
