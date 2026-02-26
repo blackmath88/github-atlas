@@ -471,6 +471,7 @@ input[type=range]::-webkit-slider-thumb{
 .g-node{cursor:pointer}
 .g-node circle{transition:all .2s}
 .g-node:hover circle.main-circle{filter:brightness(1.5)}
+.g-node:hover .main-diamond{filter:brightness(1.5)}
 .g-node text{
   font-family:'JetBrains Mono',monospace;font-size:8px;
   fill:var(--near-white);pointer-events:none;
@@ -631,6 +632,7 @@ input[type=range]::-webkit-slider-thumb{
       <button class="seg-btn on" data-view="topics" onclick="setView(this)">by topic</button>
       <button class="seg-btn" data-view="language" onclick="setView(this)">by language</button>
       <button class="seg-btn" data-view="activity" onclick="setView(this)">by activity</button>
+      <button class="seg-btn" data-view="deps" onclick="setView(this)">by deps</button>
     </div>
 
     <div class="lbl">⚙️ Filters</div>
@@ -709,7 +711,8 @@ input[type=range]::-webkit-slider-thumb{
       <strong>View modes:</strong><br>
       — By topic: repos grouped by their GitHub topics<br>
       — By language: grouped by primary language<br>
-      — By activity: sized by recency &amp; commit frequency<br><br>
+      — By activity: sized by recency &amp; commit frequency<br>
+      — By deps: external dependency graph across repos<br><br>
       <strong>Try:</strong> microsoft, langchain-ai, huggingface, vercel
     </div>
   </div>
@@ -727,6 +730,8 @@ let sim = null, nodeSel = null, linkSel = null;
 let selId = null;
 let currentView = 'topics';
 let activeOnly = false, starsOnly = false;
+let DEP_MAP = null;
+let depFetchInProgress = false;
 
 /* ── L2 STATE ── */
 let currentLevel = 1;
@@ -766,7 +771,153 @@ async function fetchWithAuth(url) {
   return res.json();
 }
 
+async function fetchRaw(url) {
+  const headers = { 'Accept':'application/vnd.github.v3.raw', ...getAuthHeader() };
+  const res = await fetch(url, {headers});
+  if (res.status === 404) return null;
+  if (res.status === 403) {
+    const remaining = res.headers.get('X-RateLimit-Remaining');
+    if (remaining === '0') throw new Error('rate-limit');
+    return null;
+  }
+  if (!res.ok) return null;
+  return res.text();
+}
+
+function slugify(s) { return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+
+function getDepColor(d) {
+  if (d.exposure >= 4) return '#e06060';
+  if (d.exposure >= 2) return '#d4a830';
+  return '#9d84b8';
+}
+
+function getDepSize(d) { return Math.max(5, Math.min(20, 5 + (d.exposure||1) * 2.5)); }
+
+function parseManifest(filename, text, orgName) {
+  const deps = [];
+  const orgLower = (orgName||'').toLowerCase();
+  if (filename === 'package.json') {
+    try {
+      const pkg = JSON.parse(text);
+      const all = Object.keys({...(pkg.dependencies||{}), ...(pkg.devDependencies||{})});
+      for (const n of all) {
+        if (/^@types\/|^eslint|^prettier/.test(n) || n === 'typescript') continue;
+        if (orgLower && n.toLowerCase().startsWith(orgLower)) continue;
+        deps.push(n); if (deps.length >= 15) break;
+      }
+    } catch {}
+  } else if (filename === 'requirements.txt') {
+    for (const line of text.split('\n')) {
+      const t = line.trim();
+      if (!t || t[0]==='#' || t[0]==='-') continue;
+      const n = t.split(/[><=!;\[]/)[0].trim();
+      if (!n) continue;
+      if (orgLower && n.toLowerCase().startsWith(orgLower)) continue;
+      deps.push(n); if (deps.length >= 15) break;
+    }
+  } else if (filename === 'pyproject.toml') {
+    let inDeps = false;
+    for (const line of text.split('\n')) {
+      if (/^\[tool\.poetry\.dependencies\]|\[project\.dependencies\]/.test(line)) { inDeps=true; continue; }
+      if (inDeps && /^\[/.test(line)) { inDeps=false; continue; }
+      if (inDeps) {
+        const m = line.match(/^([A-Za-z0-9_\-]+)\s*=/);
+        if (m && m[1] !== 'python') {
+          if (!orgLower || !m[1].toLowerCase().startsWith(orgLower)) { deps.push(m[1]); if (deps.length>=15) break; }
+        }
+      }
+    }
+  } else if (filename === 'Cargo.toml') {
+    let inDeps = false;
+    for (const line of text.split('\n')) {
+      if (/^\[dependencies\]/.test(line)) { inDeps=true; continue; }
+      if (inDeps && /^\[/.test(line)) { inDeps=false; continue; }
+      if (inDeps) {
+        const m = line.match(/^([a-zA-Z0-9_\-]+)\s*=/);
+        if (m) {
+          if (!orgLower || !m[1].toLowerCase().startsWith(orgLower)) { deps.push(m[1]); if (deps.length>=15) break; }
+        }
+      }
+    }
+  } else if (filename === 'go.mod') {
+    let inReq = false;
+    for (const line of text.split('\n')) {
+      if (/^require\s*\(/.test(line)) { inReq=true; continue; }
+      if (inReq && /^\)/.test(line.trim())) { inReq=false; continue; }
+      const src = inReq ? line : (line.match(/^require\s+(.+)/)||[])[1]||'';
+      const m = src.trim().match(/^([\w.\-\/]+)\s+v[\d]/);
+      if (m) {
+        const parts = m[1].split('/');
+        const n = parts.slice(0, Math.min(3, parts.length)).join('/');
+        if (!orgLower || !n.toLowerCase().includes(orgLower)) { deps.push(n); if (deps.length>=15) break; }
+      }
+    }
+  }
+  return deps;
+}
+
+async function fetchOrgDeps(repoNodes) {
+  const total = repoNodes.length;
+  let done = 0;
+  const map = new Map();
+  const MANIFESTS = [
+    {file:'package.json',  registry:'npm'},
+    {file:'requirements.txt', registry:'pypi'},
+    {file:'pyproject.toml',   registry:'pypi'},
+    {file:'Cargo.toml',       registry:'cargo'},
+    {file:'go.mod',           registry:'go'},
+  ];
+  for (let i = 0; i < repoNodes.length; i += 5) {
+    const chunk = repoNodes.slice(i, i + 5);
+    await Promise.all(chunk.map(async repo => {
+      if (!repo.fullName || !repo.fullName.includes('/')) { done++; return; }
+      for (const {file, registry} of MANIFESTS) {
+        try {
+          const text = await fetchRaw(`https://api.github.com/repos/${repo.fullName}/contents/${file}`);
+          if (text === null) continue;
+          const names = parseManifest(file, text, CURRENT_ORG||'');
+          if (names.length > 0) {
+            map.set(repo.id, names.map(name => ({name, registry})));
+            break;
+          }
+        } catch(e) {
+          if (e.message === 'rate-limit') throw e;
+        }
+      }
+      done++;
+      setHudText(`fetching deps… ${done}/${total} repos`);
+    }));
+  }
+  return map;
+}
+
+async function fetchAndBuildDeps() {
+  if (depFetchInProgress) return;
+  depFetchInProgress = true;
+  const repoNodes = CURRENT_DATA ? CURRENT_DATA.nodes.filter(n=>n.type==='repo') : [];
+  try {
+    DEP_MAP = await fetchOrgDeps(repoNodes);
+    if (currentView === 'deps') {
+      buildDataFromNodes();
+      renderGraph();
+      const depCount = CURRENT_DATA.nodes.filter(n=>n.type==='dep').length;
+      setHudText(`${CURRENT_ORG} · ${repoNodes.length} repos · ${depCount} ext deps mapped`);
+    }
+  } catch(e) {
+    if (e.message === 'rate-limit') {
+      toast('Rate limit hit — showing partial dep results', 'warn');
+      if (currentView === 'deps') { buildDataFromNodes(); renderGraph(); }
+    } else {
+      toast(e.message, 'err');
+    }
+  } finally {
+    depFetchInProgress = false;
+  }
+}
+
 async function loadOrg(orgName) {
+  DEP_MAP = null;
   try {
     showLoading(`Loading ${orgName}…`);
 
@@ -812,6 +963,7 @@ async function loadOrg(orgName) {
     updateEmbedCode(orgName);
     setHudText(`${orgName} · ${repos.length} repos mapped`);
     toast(`✓ Mapped ${repos.length} repos for ${orgName}`);
+    if (currentView === 'deps') fetchAndBuildDeps();
 
   } catch (e) {
     hideLoading();
@@ -929,14 +1081,14 @@ function renderGraph() {
 
   sim = d3.forceSimulation(CURRENT_DATA.nodes)
     .force('link', d3.forceLink(CURRENT_DATA.links).id(d=>d.id)
-      .distance(+document.getElementById('linkDist').value)
+      .distance(d => d.kind==='depends-on' ? 80 : +document.getElementById('linkDist').value)
       .strength(.5))
-    .force('charge', d3.forceManyBody().strength(d => d.type==='group' ? -200 : +document.getElementById('charge').value))
+    .force('charge', d3.forceManyBody().strength(d => d.type==='group' ? -200 : d.type==='dep' ? -80 : +document.getElementById('charge').value))
     .force('center', d3.forceCenter(W/2, H/2).strength(.06))
-    .force('collide', d3.forceCollide(d => d.type==='group' ? 28 : (getRepoSize(d)+5)).iterations(2));
+    .force('collide', d3.forceCollide(d => d.type==='group' ? 28 : d.type==='dep' ? getDepSize(d)+5 : getRepoSize(d)+5).iterations(2));
 
   linkSel = g.append('g').selectAll('line').data(CURRENT_DATA.links).join('line')
-    .attr('stroke','rgba(45,212,160,.18)')
+    .attr('stroke', d => d.kind==='depends-on' ? 'rgba(157,132,184,.2)' : 'rgba(45,212,160,.18)')
     .attr('stroke-width',1)
     .attr('stroke-linecap','round');
 
@@ -954,7 +1106,15 @@ function renderGraph() {
     .attr('stroke',d=>d.color).attr('stroke-width',.6).attr('stroke-opacity',.2)
     .style('animation','pulse-star 3s ease-in-out infinite');
 
-  nodeSel.append('circle')
+  // Dep nodes: pulsing outer ring for high-exposure
+  nodeSel.filter(d=>d.type==='dep'&&d.exposure>=4).append('polygon')
+    .attr('points',d=>{const r=getDepSize(d)*2.2;return `0,${-r} ${r},0 0,${r} ${-r},0`;})
+    .attr('fill',d=>getDepColor(d)).attr('fill-opacity',.05)
+    .attr('stroke',d=>getDepColor(d)).attr('stroke-width',.6).attr('stroke-opacity',.25)
+    .style('animation','pulse-star 3s ease-in-out infinite');
+
+  // Main circles (not dep nodes)
+  nodeSel.filter(d=>d.type!=='dep').append('circle')
     .attr('class','main-circle')
     .attr('r', d => d.type==='group' ? 12 : getRepoSize(d))
     .attr('fill', d => d.type==='group' ? d.color : getRepoColor(d))
@@ -963,12 +1123,20 @@ function renderGraph() {
     .attr('stroke-width', 1.2)
     .attr('stroke-opacity', .85);
 
+  // Dep node diamonds
+  nodeSel.filter(d=>d.type==='dep').append('polygon')
+    .attr('class','main-diamond')
+    .attr('points',d=>{const r=getDepSize(d);return `0,${-r} ${r},0 0,${r} ${-r},0`;})
+    .attr('fill',d=>getDepColor(d)).attr('fill-opacity',.8)
+    .attr('stroke',d=>getDepColor(d)).attr('stroke-width',1.2).attr('stroke-opacity',.9);
+
   nodeSel.append('text')
-    .attr('dx', d => (d.type==='group' ? 14 : getRepoSize(d)) + 4)
-    .attr('dy', 3)
-    .attr('fill', d => d.type==='group' ? d.color : '#c0e8d0')
-    .attr('font-size', d => d.type==='group' ? '8.5px' : '8px')
-    .attr('font-weight', d => d.type==='group' ? '600' : '400')
+    .attr('text-anchor',d=>d.type==='dep'?'middle':null)
+    .attr('dx',d=>d.type==='dep'?0:((d.type==='group'?14:getRepoSize(d))+4))
+    .attr('dy',d=>d.type==='dep'?(getDepSize(d)+12):3)
+    .attr('fill',d=>d.type==='dep'?getDepColor(d):d.type==='group'?d.color:'#c0e8d0')
+    .attr('font-size',d=>d.type==='group'?'8.5px':'8px')
+    .attr('font-weight',d=>d.type==='group'?'600':'400')
     .text(d => d.name.length > 24 ? d.name.slice(0,22)+'…' : d.name);
 
   const tip = document.getElementById('tip');
@@ -976,7 +1144,9 @@ function renderGraph() {
     .on('mousemove', (ev,d) => {
       if (d.type==='group') { tip.style.display='none'; return; }
       document.getElementById('tn').textContent = d.name;
-      document.getElementById('tm').textContent = `⭐ ${d.stars.toLocaleString()} · ${d.language||'—'} · ${d.days_since_update}d ago`;
+      document.getElementById('tm').textContent = d.type==='dep'
+        ? `used by ${d.exposure} repo${d.exposure!==1?'s':''}`
+        : `⭐ ${d.stars.toLocaleString()} · ${d.language||'—'} · ${d.days_since_update}d ago`;
       tip.style.display='block';
       tip.style.left=(ev.clientX+14)+'px';
       tip.style.top=(ev.clientY-12)+'px';
@@ -992,6 +1162,7 @@ function renderGraph() {
   });
 
   applyFilters();
+  updateLegend();
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1019,6 +1190,8 @@ function setView(el) {
     // re-build data from node records
     buildDataFromNodes();
     renderGraph();
+    updateStats();
+    if (currentView === 'deps' && DEP_MAP === null && !depFetchInProgress) fetchAndBuildDeps();
   }
 }
 
@@ -1044,6 +1217,27 @@ function buildDataFromNodes() {
     }
   });
 
+  if (currentView === 'deps') {
+    if (DEP_MAP && DEP_MAP.size) {
+      const depNodes = new Map();
+      DEP_MAP.forEach((pkgs, repoId) => {
+        pkgs.forEach(pkg => {
+          const depId = `dep-${slugify(pkg.name)}`;
+          if (!depNodes.has(depId)) depNodes.set(depId, {id:depId,type:'dep',name:pkg.name,registry:pkg.registry,repos:[],exposure:0});
+          const dn = depNodes.get(depId);
+          if (!dn.repos.includes(repoId)) {
+            dn.repos.push(repoId);
+            dn.exposure = dn.repos.length;
+          }
+          links.push({source:repoId,target:depId,kind:'depends-on'});
+        });
+      });
+      depNodes.forEach(dn=>nodes.push(dn));
+    }
+    CURRENT_DATA = {nodes, links};
+    return;
+  }
+
   const GROUP_COLORS = ['#2dd4a0','#60e8c0','#1aaa80','#4dd4b0','#90e8c8','#20b080','#3dc890','#70e0b0'];
   let ci = 0;
   const groups = currentView==='topics' ? topicCenters : currentView==='language' ? langCenters : new Map();
@@ -1061,7 +1255,7 @@ function buildDataFromNodes() {
    FILTERS
 ═══════════════════════════════════════════════════════ */
 function nodeVisible(d) {
-  if (d.type==='group') return true;
+  if (d.type==='group' || d.type==='dep') return true;
   if (activeOnly && d.inactive) return false;
   if (starsOnly && d.stars < 100) return false;
   return true;
@@ -1080,6 +1274,21 @@ function applyFilters() {
 
 function updateStats() {
   if (!CURRENT_DATA) return;
+  if (currentView === 'deps') {
+    const repos = CURRENT_DATA.nodes.filter(n=>n.type==='repo');
+    const deps = CURRENT_DATA.nodes.filter(n=>n.type==='dep');
+    const shared = deps.filter(n=>n.exposure>=2);
+    const depLinks = CURRENT_DATA.links.filter(l=>l.kind==='depends-on');
+    document.getElementById('sN').textContent = repos.length;
+    document.getElementById('sL').textContent = deps.length;
+    document.getElementById('sA').textContent = shared.length;
+    document.getElementById('sS').textContent = depLinks.length;
+    document.getElementById('sN').nextElementSibling.textContent = 'repos';
+    document.getElementById('sL').nextElementSibling.textContent = 'ext deps';
+    document.getElementById('sA').nextElementSibling.textContent = 'shared';
+    document.getElementById('sS').nextElementSibling.textContent = 'dep links';
+    return;
+  }
   const repos = CURRENT_DATA.nodes.filter(n=>n.type==='repo');
   const visible = repos.filter(nodeVisible);
   const topics = new Set(visible.flatMap(n=>n.topics||[]));
@@ -1088,6 +1297,10 @@ function updateStats() {
   document.getElementById('sL').textContent = topics.size;
   document.getElementById('sA').textContent = visible.filter(n=>!n.inactive).length;
   document.getElementById('sS').textContent = totalStars > 999 ? (totalStars/1000).toFixed(1)+'k' : totalStars;
+  document.getElementById('sN').nextElementSibling.textContent = 'repos';
+  document.getElementById('sL').nextElementSibling.textContent = 'topics';
+  document.getElementById('sA').nextElementSibling.textContent = 'active';
+  document.getElementById('sS').nextElementSibling.textContent = '⭐ total';
 }
 
 /* ═══════════════════════════════════════════════════════
@@ -1137,6 +1350,7 @@ function renderDetailDefault() {
 }
 
 function renderDetail(n, nbSet) {
+  if (n.type === 'dep') { renderDepDetail(n, nbSet); return; }
   document.getElementById('dName').textContent = n.name;
   document.getElementById('dSub').textContent = `${n.language||'—'} · ${n.stars.toLocaleString()} stars`;
 
@@ -1193,6 +1407,43 @@ function renderDetail(n, nbSet) {
     html += `</div></div>`;
   }
 
+  document.getElementById('dPane').innerHTML = html;
+  document.getElementById('dPane').querySelectorAll('[data-j]').forEach(el=>el.addEventListener('click',()=>selectNode(el.dataset.j)));
+}
+
+function renderDepDetail(n) {
+  const color = getDepColor(n);
+  const r = 10;
+  const diamondSvg = `<svg width="${r*2+4}" height="${r*2+4}" viewBox="${-(r+2)} ${-(r+2)} ${(r+2)*2} ${(r+2)*2}" style="display:inline-block;vertical-align:middle;margin-right:8px;flex-shrink:0"><polygon points="0,${-r} ${r},0 0,${r} ${-r},0" fill="${color}" fill-opacity=".8" stroke="${color}" stroke-width="1.5"/></svg>`;
+  const regUrls = {
+    npm:`https://www.npmjs.com/package/${encodeURIComponent(n.name)}`,
+    pypi:`https://pypi.org/project/${encodeURIComponent(n.name)}`,
+    cargo:`https://crates.io/crates/${encodeURIComponent(n.name)}`,
+    go:`https://pkg.go.dev/${n.name.split('/').map(encodeURIComponent).join('/')}`
+  };
+  const regLabels = {npm:'npm',pypi:'PyPI',cargo:'crates.io',go:'pkg.go.dev'};
+  const regUrl = regUrls[n.registry] || regUrls.npm;
+  const regLabel = regLabels[n.registry] || 'registry';
+  const repoNodes = (n.repos||[]).map(rid=>nodeById().get(rid)).filter(Boolean);
+
+  document.getElementById('dName').textContent = n.name;
+  document.getElementById('dSub').textContent = 'External dependency';
+
+  let html = `<div class="d-hero">
+    <div class="d-typelbl">external dependency</div>
+    <div class="d-name" style="display:flex;align-items:center">${diamondSvg}${esc(n.name)}</div>
+    <div class="d-sub">Used by ${n.exposure} repo${n.exposure!==1?'s':''}</div>
+  </div>`;
+
+  if (repoNodes.length > 0) {
+    html += `<div class="d-sec"><h3>Used by ${repoNodes.length} repos</h3><div class="conn-list">`;
+    repoNodes.forEach(rn => {
+      html += `<div class="conn" data-j="${esc(rn.id)}"><div class="cn">${esc(rn.name)}</div><div class="cm">⭐ ${rn.stars.toLocaleString()}</div></div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  html += `<div class="d-sec"><a href="${esc(regUrl)}" target="_blank" class="action-btn">↗ View on ${esc(regLabel)}</a></div>`;
   document.getElementById('dPane').innerHTML = html;
   document.getElementById('dPane').querySelectorAll('[data-j]').forEach(el=>el.addEventListener('click',()=>selectNode(el.dataset.j)));
 }
@@ -1621,6 +1872,26 @@ function updateEmbedCode(org) {
   document.getElementById('embedCode').textContent = code;
 }
 
+function updateLegend() {
+  let legend = document.querySelector('.center .legend');
+  if (currentView === 'deps') {
+    if (!legend) {
+      legend = document.createElement('div');
+      legend.className = 'legend';
+      document.querySelector('.center').appendChild(legend);
+    }
+    legend.style.display = '';
+    legend.innerHTML = `
+      <div class="legend-row"><svg width="10" height="10" viewBox="-5 -5 10 10" style="flex-shrink:0"><polygon points="0,-4 4,0 0,4 -4,0" fill="#e06060"/></svg><span>used by 4+ repos</span></div>
+      <div class="legend-row"><svg width="10" height="10" viewBox="-5 -5 10 10" style="flex-shrink:0"><polygon points="0,-4 4,0 0,4 -4,0" fill="#d4a830"/></svg><span>used by 2–3 repos</span></div>
+      <div class="legend-row"><svg width="10" height="10" viewBox="-5 -5 10 10" style="flex-shrink:0"><polygon points="0,-4 4,0 0,4 -4,0" fill="#9d84b8"/></svg><span>used by 1 repo</span></div>
+      <div class="legend-row"><div class="legend-dot" style="background:#2dd4a0"></div><span>your repos</span></div>
+    `;
+  } else if (legend) {
+    legend.style.display = 'none';
+  }
+}
+
 /* ═══════════════════════════════════════════════════════
    UI HELPERS
 ═══════════════════════════════════════════════════════ */
@@ -1679,11 +1950,11 @@ document.getElementById('btnReset').addEventListener('click',()=>{
 
 document.getElementById('charge').addEventListener('input',e=>{
   document.getElementById('cV').textContent=e.target.value;
-  if(sim) sim.force('charge').strength(+e.target.value).alpha(.4).restart();
+  if(sim) sim.force('charge').strength(d => d.type==='group'?-200:d.type==='dep'?-80:+e.target.value).alpha(.4).restart();
 });
 document.getElementById('linkDist').addEventListener('input',e=>{
   document.getElementById('dV').textContent=e.target.value;
-  if(sim) sim.force('link').distance(+e.target.value).alpha(.4).restart();
+  if(sim) sim.force('link').distance(d => d.kind==='depends-on'?80:+e.target.value).alpha(.4).restart();
 });
 
 document.getElementById('copyEmbed').addEventListener('click',()=>{
