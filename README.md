@@ -8,6 +8,8 @@
 [![GitHub Pages](https://img.shields.io/badge/live-GitHub%20Pages-4d807f.svg)](https://blackmath88.github.io/github-atlas/)
 [![Client-side only](https://img.shields.io/badge/client--side-only-cab1df.svg)](#)
 
+![GitHub Atlas preview](preview.png)
+
 ---
 
 ## The Problem
@@ -15,6 +17,8 @@
 GitHub has evolved from a developer tool into public infrastructure. But its interface was built for developers — not for the new wave of users arriving from YouTube, LinkedIn, and ChatGPT who need to navigate it without understanding repository conventions.
 
 GitHub's chaos isn't the problem. **Not having a map is.**
+
+---
 
 ## The Three Tools
 
@@ -80,6 +84,8 @@ For framework maintainers, open-source orgs, and teams managing multiple project
 | Build | None — static HTML |
 | Hosting | GitHub Pages |
 
+---
+
 ## Running Locally
 
 No build step needed. Just open any file in a browser:
@@ -92,14 +98,64 @@ open index.html   # or double-click any .html file
 
 For GitHub API calls beyond 60 req/hr, add a personal access token in the tool's token field. Read-only, public scopes only — no write permissions needed.
 
+---
+
+## Project Status
+
+**Live as of February 2026.**
+
+| Item | Status |
+|---|---|
+| index.html (landing page) | ✅ Live |
+| navigator.html | ✅ Live |
+| radar.html | ✅ Live |
+| hub.html | ✅ Live |
+| GitHub Pages | ✅ [blackmath88.github.io/github-atlas](https://blackmath88.github.io/github-atlas/) |
+| Social preview (og:image) | ✅ preview.png uploaded |
+| README | ✅ This document |
+| CONTRIBUTING.md | ✅ [See contribution guide](CONTRIBUTING.md) |
+| docs/getting-started.md | ✅ [Getting started guide](docs/getting-started.md) |
+| License | ✅ MIT |
+
+---
+
+## Roadmap
+
+Ideas under consideration — contributions welcome:
+
+- **Navigator:** Additional curated repositories; domain-specific maps (ML infra, web3, devtools, design systems)
+- **Radar:** New analytical lenses for specific decision types; deeper contributor graph analysis
+- **Hub:** New view modes beyond topic/language/activity; enhanced embed parameters
+- **All tools:** Keyboard navigation improvements; accessibility pass
+
+The project is intentionally minimal. New features only ship if they make GitHub more navigable without adding complexity or dependencies.
+
+---
+
+## Philosophy
+
+Atlas is a translation layer — not a search engine, not a dashboard, not a metrics tool.
+
+The goal is to take what GitHub contains and make it navigable terrain for people who don't already know the layout. That means maps over lists, signal over noise, and privacy by default.
+
+Three constraints define the project and are never negotiable:
+
+1. **Client-side only.** No server, no tracking, no data leaving the browser.
+2. **No build step.** Open the file. It works. That's the whole deployment model.
+3. **Built to be forked.** Low lock-in by design. If you want a domain-specific version for your community, the architecture gets out of your way.
+
+---
+
 ## Contributing
 
-Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Contributions welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for full guidelines.
 
 Ideas especially welcome for:
 - Additional curated repositories in Navigator
 - New analytical lenses in Radar
-- Domain-specific Navigator maps (ML infra, web3, devtools, etc.)
+- Domain-specific Atlas forks (ML infra, web3, devtools, etc.)
+
+---
 
 ## License
 
