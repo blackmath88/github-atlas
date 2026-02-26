@@ -1282,36 +1282,6 @@ let l2Stage      = 'categories'; // 'categories' | 'items'
 let l2ActiveCat  = null; // which category is open in stage B
 let l2ActiveFilters = new Set(); // active keyword filter chips
 
-async function exploreRepo(repoId) {
-  const cfg = L2_CONFIGS[repoId];
-  if (!cfg) return;
-
-  l1Data    = CURRENT_DATA;
-  l2RepoId  = repoId;
-  currentLevel = 2;
-  l2Stage   = 'categories';
-  l2ActiveCat = null;
-
-  updateL2Breadcrumb(cfg);
-  showL2Loading(cfg);
-
-  try {
-    if (!l2ParsedData || l2ParsedData.repoId !== repoId) {
-      if (cfg.parser === 'csv')            l2ParsedData = { repoId, ...(await parseCSVRepo(cfg)) };
-      else if (cfg.parser === 'readme_headings') l2ParsedData = { repoId, ...(await parseReadmeRepo(cfg)) };
-    }
-    if (!l2ParsedData.clusters.length) throw new Error('No content parsed');
-    renderL2Categories();
-  } catch(err) {
-    console.error('L2 error:', err);
-    document.getElementById('dPane').innerHTML = `<div class="hint-txt">
-      <div style="color:#e06080;margin-bottom:8px">⚠️ Could not load content</div>
-      <div style="font-size:11px">GitHub API may be rate-limited. Try again shortly or open the repo directly.</div>
-      <div style="margin-top:12px"><a href="https://github.com/${cfg.label}" target="_blank" class="start-btn">↗ Open on GitHub</a></div>
-    </div>`;
-    setHudText('Error loading — try again');
-  }
-}
 
 async function exploreRepo(repoId) {
   const cfg = L2_CONFIGS[repoId];
