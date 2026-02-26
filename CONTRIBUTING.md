@@ -16,18 +16,18 @@ Contributions are welcome at every level — curation, analysis, interface, and 
 
 ## 🗺️ Ways to Contribute
 
-### 🚀 Launchpad curation
+### 🧭 Navigator curation
 
-Launchpad is a hand-curated map of LLM repositories, not a scraped list. Quality over quantity — every entry is a deliberate recommendation.
+Navigator is a hand-curated map of LLM repositories, not a scraped list. Quality over quantity — every entry is a deliberate recommendation.
 
-To add or update a repository, submit a PR editing `launchpad.html` with the following metadata for each entry:
+To add or update a repository, submit a PR editing `navigator.html` with the following metadata for each entry:
 
 | Field | Description |
 |---|---|
 | `name` | Short display name |
 | `url` | Full GitHub URL |
 | `description` | One sentence, written for the intended persona |
-| `persona(s)` | One or more of: `Explorer`, `Builder`, `Prompter`, `Org Lead` |
+| `persona(s)` | One or more of: `Explorer`, `Builder`, `Prompt Engineer`, `Org Lead` |
 | `intent cluster` | The use-case group it belongs to |
 | `trust` | `Official`, `Community`, or `Sensitive` |
 
@@ -37,9 +37,9 @@ Your PR should explain: why the repo was chosen, which persona(s) it serves, and
 
 ---
 
-### 🔍 Navigator lenses
+### 📡 Radar lenses
 
-Navigator currently ships four analytical lenses: **Architecture**, **Org Map**, **Health**, and **Due Diligence**. New lenses are welcome — but a lens is only useful if it enables a specific decision.
+Radar currently ships four analytical lenses: **Architecture Review**, **Org Map**, **Ecosystem Health**, and **Due Diligence**. New lenses are welcome — but a lens is only useful if it enables a specific decision.
 
 Before building a new lens, write its user story:
 
@@ -71,7 +71,7 @@ File a GitHub Issue. Include:
 
 - What you expected to happen
 - What actually happened
-- Which tool (Navigator / Launchpad / Hub)
+- Which tool (Navigator / Radar / Hub)
 - Browser and version
 - Any console errors (open DevTools → Console)
 
@@ -91,7 +91,7 @@ Features that make GitHub more navigable for non-developers are especially welco
 
 ### 🍴 Forks and domains
 
-Atlas was built to be forked. A domain-specific Launchpad for ML infrastructure, web3 tooling, design systems, or any other ecosystem is a legitimate and encouraged use of this project.
+Atlas was built to be forked. A domain-specific Navigator for ML infrastructure, web3 tooling, design systems, or any other ecosystem is a legitimate and encouraged use of this project.
 
 Single HTML files mean low lock-in by design — you can fork one tool, customize it for your community, and host it anywhere with no build pipeline. If you build a domain fork, open an issue to let us know — we may link to it from the main project.
 
@@ -136,9 +136,9 @@ Each tool has a color identity — don't mix them:
 
 | Tool | Identity |
 |---|---|
-| Navigator | teal |
-| Launchpad | purple |
-| Hub | lavender |
+| Navigator | purple |
+| Radar | teal |
+| Hub | mint (`#2dd4a0`) |
 
 ### Zero-dependency rule
 
@@ -166,14 +166,14 @@ If a contribution requires npm, a build step, or any form of server-side process
 2. Make your changes in a feature branch
 3. Open a PR with a clear description of:
    - What changed
-   - Which tool it affects (Navigator / Launchpad / Hub / all)
+   - Which tool it affects (Navigator / Radar / Hub / all)
    - Why it fits Atlas's mission
 
-**For Launchpad curation PRs**, also include: why the repo was chosen, which persona(s) it serves, trust level and justification.
+**For Navigator curation PRs**, also include: why the repo was chosen, which persona(s) it serves, trust level and justification.
 
-**For Navigator lens PRs**, also include: user story, signals used, decision enabled.
+**For Radar lens PRs**, also include: user story, signals used, decision enabled.
 
-Keep PRs focused. One change per PR is preferred — a Launchpad addition and a Hub layout change belong in separate PRs.
+Keep PRs focused. One change per PR is preferred — a Navigator curation addition and a Hub layout change belong in separate PRs.
 
 The codebase has no automated test suite. Manual verification in-browser is expected before opening a PR. Test in at least one modern browser and check the browser console for errors.
 
