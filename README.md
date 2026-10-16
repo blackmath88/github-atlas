@@ -1,4 +1,15 @@
+<!-- BEGIN public-repo-header -->
+<div align="center">
+
 # GitHub Atlas
+
+<a href="https://github.com/blackmath88/github-atlas"><img alt="Primary language: HTML" src="https://img.shields.io/badge/language-HTML-526078?style=flat"></a>
+<a href="https://github.com/blackmath88/github-atlas/tree/main/docs"><img alt="Documentation" src="https://img.shields.io/badge/docs-guide-16796f?style=flat"></a>
+<a href="https://github.com/blackmath88/github-atlas/blob/main/LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-737373?style=flat"></a>
+<a href="https://github.com/blackmath88/github-atlas/commits/main"><img alt="Last commit" src="https://img.shields.io/github/last-commit/blackmath88/github-atlas?style=flat&amp;color=737373"></a>
+
+</div>
+<!-- END public-repo-header -->
 
 > *In Greek mythology, Atlas holds up the sky — giving others a clear view of the world below.*
 
